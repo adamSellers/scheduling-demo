@@ -3,22 +3,12 @@ const router = express.Router();
 const schedulerController = require("../controllers/scheduler.controller");
 const AuthMiddleware = require("../middleware/auth.middleware");
 
-router.get(
-    "/territories",
-    AuthMiddleware.isAuthenticated,
-    schedulerController.getServiceTerritories
-);
+// Make sure all routes are authenticated
+router.use(AuthMiddleware.isAuthenticated);
 
-router.get(
-    "/resources",
-    AuthMiddleware.isAuthenticated,
-    schedulerController.getServiceResources
-);
-
-router.get(
-    "/appointments",
-    AuthMiddleware.isAuthenticated,
-    schedulerController.getServiceAppointments
-);
+router.get("/territories", schedulerController.getServiceTerritories);
+router.get("/resources", schedulerController.getServiceResources);
+router.get("/appointments", schedulerController.getServiceAppointments);
+router.get("/work-type-groups", schedulerController.getWorkGroupTypes);
 
 module.exports = router;

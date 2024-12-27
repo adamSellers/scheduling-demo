@@ -10,17 +10,29 @@ const api = axios.create({
 });
 
 api.interceptors.response.use(
-    (response) => response.data,
+    (response) => {
+        console.log("API Response:", {
+            url: response.config.url,
+            data: response.data,
+        });
+        return response.data;
+    },
     (error) => {
-        if (error.response) {
-            if (error.response.status === 401) {
-                window.location.href = "/";
-                return Promise.reject(new Error("Session expired"));
-            }
-            const message = error.response.data?.error || "An error occurred";
-            return Promise.reject(new Error(message));
+        console.error("API Error:", {
+            url: error.config?.url,
+            message: error.message,
+            response: error.response?.data,
+        });
+
+        if (error.response?.status === 401) {
+            window.location.href = "/";
+            return Promise.reject(new Error("Session expired"));
         }
-        return Promise.reject(new Error("Unable to connect to server"));
+        return Promise.reject(
+            new Error(
+                error.response?.data?.error || "Unable to connect to server"
+            )
+        );
     }
 );
 
@@ -29,6 +41,10 @@ const ApiService = {
         getTerritories: () => api.get("/scheduler/territories"),
         getResources: () => api.get("/scheduler/resources"),
         getAppointments: () => api.get("/scheduler/appointments"),
+        getWorkGroupTypes: () => {
+            console.log("Calling getWorkGroupTypes API");
+            return api.get("/scheduler/work-type-groups");
+        },
     },
     profile: {
         getUserInfo: () => api.get("/auth/user-info"),

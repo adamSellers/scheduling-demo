@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Grid,
+  Grid2 as Grid,
   Divider,
   Alert,
 } from '@mui/material';
@@ -10,11 +10,13 @@ import {
   LocationOn as TerritoryIcon,
   Person as ResourceIcon,
   Event as AppointmentIcon,
+  Category as WorkGroupIcon,
 } from '@mui/icons-material';
 import StatCard from './StatCard';
 import DataTable from './DataTable';
 
-const DashboardContent = ({ territories, resources, appointments, error }) => {
+const DashboardContent = ({ territories, resources, appointments, workGroupTypes, error, onRefresh }) => {
+  console.log('DashboardContent territories:', territories);
   const territoryColumns = [
     { id: 'name', label: 'Territory Name' },
     { id: 'operatingHours', label: 'Operating Hours' },
@@ -34,12 +36,20 @@ const DashboardContent = ({ territories, resources, appointments, error }) => {
     {
       id: 'scheduledTime',
       label: 'Scheduled Time',
-      format: (value) => new Date(value).toLocaleString(),
+      format: (value) => value ? new Date(value).toLocaleString() : 'Not Scheduled',
     },
     { id: 'serviceTerritory', label: 'Territory' },
     { id: 'assignedResource', label: 'Assigned To' },
     { id: 'status', label: 'Status' },
   ];
+
+  const workGroupColumns = [
+    { id: 'name', label: 'Appointment Type' },
+    { id: 'groupType', label: 'Type' },
+    { id: 'isActive', label: 'Status', format: (value) => value ? 'Active' : 'Inactive' }
+  ];
+
+  console.log('WorkGroupTypes received in DashboardContent:', workGroupTypes);
 
   return (
     <Box
@@ -51,31 +61,38 @@ const DashboardContent = ({ territories, resources, appointments, error }) => {
       }}
     >
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Service Territories"
-            count={territories.length}
+            count={territories?.length || 0}
             icon={TerritoryIcon}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Service Resources"
-            count={resources.length}
+            count={resources?.length || 0}
             icon={ResourceIcon}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Open Appointments"
-            count={appointments.length}
+            count={appointments?.length || 0}
             icon={AppointmentIcon}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Appointment Types"
+            count={workGroupTypes?.length || 0}
+            icon={WorkGroupIcon}
           />
         </Grid>
       </Grid>
@@ -84,14 +101,21 @@ const DashboardContent = ({ territories, resources, appointments, error }) => {
         Service Territories
       </Typography>
       <Box sx={{ mb: 4 }}>
-        <DataTable columns={territoryColumns} data={territories} />
+        <DataTable columns={territoryColumns} data={territories || []} />
       </Box>
 
       <Typography variant="h5" sx={{ mb: 3 }}>
         Service Resources
       </Typography>
       <Box sx={{ mb: 4 }}>
-        <DataTable columns={resourceColumns} data={resources} />
+        <DataTable columns={resourceColumns} data={resources || []} />
+      </Box>
+
+      <Typography variant="h5" sx={{ mb: 3 }}>
+        Appointment Types
+      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <DataTable columns={workGroupColumns} data={workGroupTypes || []} />
       </Box>
 
       <Divider sx={{ my: 4 }} />
@@ -100,7 +124,7 @@ const DashboardContent = ({ territories, resources, appointments, error }) => {
         Open Service Appointments
       </Typography>
       <Box sx={{ mb: 4 }}>
-        <DataTable columns={appointmentColumns} data={appointments} />
+        <DataTable columns={appointmentColumns} data={appointments || []} />
       </Box>
     </Box>
   );

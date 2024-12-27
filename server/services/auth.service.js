@@ -1,4 +1,3 @@
-// services/auth.service.js
 const passport = require("passport");
 const OAuth2Strategy = require("passport-oauth2");
 
@@ -15,37 +14,21 @@ class AuthService {
                     callbackURL:
                         "http://localhost:3000/auth/salesforce/callback",
                 },
-                function (accessToken, refreshToken, profile, cb) {
-                    // Add script to send token to browser console
-                    const consoleScript = `
-                        <script>
-                            console.log('Salesforce Access Token:', '${accessToken}');
-                        </script>
-                    `;
-
+                function (accessToken, refreshToken, params, profile, cb) {
+                    console.log(`Access token: ${accessToken}`);
+                    console.log(`Instance URL: ${params.instance_url}`);
                     return cb(null, {
                         accessToken,
                         refreshToken,
+                        instanceUrl: params.instance_url,
                         profile,
-                        consoleScript,
                     });
                 }
             )
         );
 
-        this.initializeSerializers();
-    }
-
-    static initializeSerializers() {
-        passport.serializeUser((user, done) => {
-            console.log("Serializing user:", user);
-            done(null, user);
-        });
-
-        passport.deserializeUser((user, done) => {
-            console.log("Deserializing user:", user);
-            done(null, user);
-        });
+        passport.serializeUser((user, done) => done(null, user));
+        passport.deserializeUser((user, done) => done(null, user));
     }
 }
 

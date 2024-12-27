@@ -13,19 +13,14 @@ const authController = {
             failureRedirect: "/login",
             session: true,
         })(req, res, (err) => {
-            if (err) {
-                console.error("Authentication Error:", err);
-                return next(err);
-            }
+            if (err) return next(err);
             res.redirect("http://localhost:5173/dashboard");
         });
     },
 
     logout: (req, res, next) => {
         req.logout((err) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) return next(err);
             res.redirect("http://localhost:5173/");
         });
     },
@@ -45,15 +40,11 @@ const authController = {
                 }
             );
 
-            // Include the access token in the response (remove in production)
-            const userInfo = {
+            res.json({
                 ...response.data,
                 accessToken: req.user.accessToken,
-            };
-
-            res.json(userInfo);
+            });
         } catch (error) {
-            console.error("Error fetching user info:", error);
             res.status(500).json({
                 error: "Failed to fetch user information",
             });
