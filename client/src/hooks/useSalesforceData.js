@@ -27,10 +27,15 @@ export const useSalesforceData = () => {
             const territoriesData = await ApiService.scheduler.getTerritories();
             console.log("Territories fetch result:", territoriesData);
 
+            // Fetch resources
+            const resourcesData = await ApiService.scheduler.getResources();
+            console.log("Resources fetch result:", resourcesData);
+
             setData((prevData) => ({
                 ...prevData,
                 territories: territoriesData || [],
                 workGroupTypes: workGroupTypesData || [],
+                resources: resourcesData || [],
                 // Leave resources and appointments as empty arrays for now
             }));
         } catch (error) {

@@ -50,6 +50,12 @@ const ApiService = {
             console.log("Work group types API response:", workGroupTypes);
             return workGroupTypes;
         },
+        getResources: async () => {
+            console.log("Calling getResources API");
+            const resources = await api.get("/scheduler/resources");
+            console.log("Resources API response:", resources);
+            return resources;
+        },
     },
 };
 

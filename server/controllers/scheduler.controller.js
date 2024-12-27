@@ -96,13 +96,22 @@ const schedulerController = {
         }
 
         try {
+            console.log("Starting service resources fetch");
             const resources = await schedulerService.getServiceResources(
                 req.user.accessToken,
                 req.user.instanceUrl
             );
+            console.log("Service resources response:", {
+                count: resources?.length,
+                firstResource: resources?.[0],
+            });
             res.json(resources);
         } catch (error) {
-            console.error("Resource fetch error:", error);
+            console.error("Resource fetch error:", {
+                message: error.message,
+                response: error.response?.data,
+                statusCode: error.response?.status,
+            });
             if (error.response?.status === 401) {
                 return res
                     .status(401)
