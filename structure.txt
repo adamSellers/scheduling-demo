@@ -1,0 +1,72 @@
+server
+├── .env
+├── .gitignore
+├── app.js
+├── bin
+│   └── www
+├── config
+│   ├── cors.config.js
+│   └── passport.config.js
+├── controllers
+│   ├── auth.controller.js
+│   └── scheduler.controller.js
+├── middleware
+│   └── auth.middleware.js
+├── package-lock.json
+├── package.json
+├── public
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+│       └── style.css
+├── routes
+│   ├── auth.routes.js
+│   ├── index.js
+│   └── scheduler.routes.js
+├── services
+│   ├── auth.service.js
+│   └── scheduler.service.js
+└── views
+    ├── error.pug
+    ├── index.pug
+    └── layout.pug
+client
+├── .gitignore
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   └── vite.svg
+├── src
+│   ├── App.css
+│   ├── App.jsx
+│   ├── assets
+│   │   └── react.svg
+│   ├── components
+│   │   ├── AppointmentFlow
+│   │   │   └── AppointmentFlow.jsx
+│   │   ├── Dashboard
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── DashboardContent.jsx
+│   │   │   ├── DataTable.jsx
+│   │   │   └── StatCard.jsx
+│   │   ├── Icons
+│   │   │   └── SalesforceIcon.jsx
+│   │   ├── Login
+│   │   │   └── Login.jsx
+│   │   ├── Navigation
+│   │   │   ├── Navbar.jsx
+│   │   │   └── Sidebar.jsx
+│   │   └── Profile
+│   │       └── Profile.jsx
+│   ├── index.css
+│   ├── layouts
+│   │   └── MainLayout.jsx
+│   ├── main.jsx
+│   ├── services
+│   │   └── api.service.js
+│   └── theme
+│       └── theme.js
+└── vite.config.js
