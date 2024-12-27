@@ -9,13 +9,14 @@ const api = axios.create({
     },
 });
 
+// Response interceptor - simplified to just return response.data
 api.interceptors.response.use(
     (response) => {
         console.log("API Response:", {
             url: response.config.url,
-            data: response.data,
+            responseData: response.data,
         });
-        return response.data;
+        return response.data; // Just return the data directly
     },
     (error) => {
         console.error("API Error:", {
@@ -23,7 +24,6 @@ api.interceptors.response.use(
             message: error.message,
             response: error.response?.data,
         });
-
         if (error.response?.status === 401) {
             window.location.href = "/";
             return Promise.reject(new Error("Session expired"));
@@ -38,16 +38,18 @@ api.interceptors.response.use(
 
 const ApiService = {
     scheduler: {
-        getTerritories: () => api.get("/scheduler/territories"),
-        getResources: () => api.get("/scheduler/resources"),
-        getAppointments: () => api.get("/scheduler/appointments"),
-        getWorkGroupTypes: () => {
-            console.log("Calling getWorkGroupTypes API");
-            return api.get("/scheduler/work-type-groups");
+        getTerritories: async () => {
+            console.log("Calling getTerritories API");
+            const territories = await api.get("/scheduler/territories");
+            console.log("Territories API response:", territories);
+            return territories;
         },
-    },
-    profile: {
-        getUserInfo: () => api.get("/auth/user-info"),
+        getWorkGroupTypes: async () => {
+            console.log("Calling getWorkGroupTypes API");
+            const workGroupTypes = await api.get("/scheduler/work-type-groups");
+            console.log("Work group types API response:", workGroupTypes);
+            return workGroupTypes;
+        },
     },
 };
 

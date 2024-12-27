@@ -15,8 +15,23 @@ class AuthService {
                         "http://localhost:3000/auth/salesforce/callback",
                 },
                 function (accessToken, refreshToken, params, profile, cb) {
-                    console.log(`Access token: ${accessToken}`);
-                    console.log(`Instance URL: ${params.instance_url}`);
+                    console.log("OAuth callback received:", {
+                        hasAccessToken: !!accessToken,
+                        hasInstanceUrl: !!params?.instance_url,
+                        instanceUrl: params?.instance_url,
+                    });
+
+                    if (!params.instance_url) {
+                        console.error(
+                            "No instance_url received from Salesforce OAuth"
+                        );
+                        return cb(
+                            new Error(
+                                "No instance URL received from Salesforce"
+                            )
+                        );
+                    }
+
                     return cb(null, {
                         accessToken,
                         refreshToken,
@@ -27,8 +42,23 @@ class AuthService {
             )
         );
 
-        passport.serializeUser((user, done) => done(null, user));
-        passport.deserializeUser((user, done) => done(null, user));
+        passport.serializeUser((user, done) => {
+            console.log("Serializing user:", {
+                hasAccessToken: !!user?.accessToken,
+                hasInstanceUrl: !!user?.instanceUrl,
+                instanceUrl: user?.instanceUrl,
+            });
+            done(null, user);
+        });
+
+        passport.deserializeUser((user, done) => {
+            console.log("Deserializing user:", {
+                hasAccessToken: !!user?.accessToken,
+                hasInstanceUrl: !!user?.instanceUrl,
+                instanceUrl: user?.instanceUrl,
+            });
+            done(null, user);
+        });
     }
 }
 
