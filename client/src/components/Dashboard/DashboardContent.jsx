@@ -34,13 +34,23 @@ const DashboardContent = ({ territories, resources, appointments, workGroupTypes
   const appointmentColumns = [
     { id: 'appointmentNumber', label: 'Appointment #' },
     {
-      id: 'scheduledTime',
-      label: 'Scheduled Time',
+      id: 'scheduledStartTime',
+      label: 'Start Time',
+      format: (value) => value ? new Date(value).toLocaleString() : 'Not Scheduled',
+    },
+    {
+      id: 'scheduledEndTime',
+      label: 'End Time',
       format: (value) => value ? new Date(value).toLocaleString() : 'Not Scheduled',
     },
     { id: 'serviceTerritory', label: 'Territory' },
-    { id: 'assignedResource', label: 'Assigned To' },
+    { id: 'workTypeName', label: 'Work Type' },
     { id: 'status', label: 'Status' },
+    {
+      id: 'location',
+      label: 'Location',
+      format: (value) => value ? `${value.city}, ${value.state}` : 'N/A',
+    },
   ];
 
   const workGroupColumns = [

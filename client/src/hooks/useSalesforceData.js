@@ -31,12 +31,17 @@ export const useSalesforceData = () => {
             const resourcesData = await ApiService.scheduler.getResources();
             console.log("Resources fetch result:", resourcesData);
 
+            // Fetch appointments
+            const appointmentsData =
+                await ApiService.scheduler.getAppointments();
+            console.log("Appointments fetch result:", appointmentsData);
+
             setData((prevData) => ({
                 ...prevData,
                 territories: territoriesData || [],
                 workGroupTypes: workGroupTypesData || [],
                 resources: resourcesData || [],
-                // Leave resources and appointments as empty arrays for now
+                appointments: appointmentsData || [],
             }));
         } catch (error) {
             console.error("Error fetching Salesforce data:", error);

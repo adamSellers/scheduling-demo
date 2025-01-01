@@ -56,6 +56,12 @@ const ApiService = {
             console.log("Resources API response:", resources);
             return resources;
         },
+        getAppointments: async () => {
+            console.log("Calling getAppointments API");
+            const appointments = await api.get("/scheduler/appointments");
+            console.log("Appointments API response:", appointments);
+            return appointments;
+        },
     },
 };
 

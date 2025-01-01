@@ -83,37 +83,56 @@ class SchedulerService {
             );
         }
 
-        const params = {
-            startTime: new Date().toISOString(),
-            endTime: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            workTypeGroupId: process.env.SF_DEFAULT_WORKTYPE_GROUP_ID,
-            workTypeId: process.env.SF_DEFAULT_WORKTYPE_ID,
-        };
+        const query = encodeURIComponent(
+            `SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, 
+            ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, 
+            PostalCode, Description, WorkType.Name, WorkTypeId 
+            FROM ServiceAppointment 
+            WHERE Status NOT IN ('Completed','Canceled') 
+            ORDER BY SchedStartTime ASC`
+        );
 
         try {
-            const appointments = await this.makeApiRequest(
-                instanceUrl,
-                accessToken,
-                "/service-appointments",
-                "GET",
-                params
-            );
+            console.log("Fetching service appointments with query:", query);
 
-            return (
-                appointments?.map((appointment) => ({
-                    appointmentNumber: appointment.appointmentNumber || "N/A",
-                    scheduledTime: appointment.scheduledStartTime,
-                    serviceTerritory:
-                        appointment.serviceTerritory?.name || "Unassigned",
-                    assignedResource:
-                        appointment.assignedResource?.name || "Unassigned",
-                    status: appointment.status || "Unknown",
-                })) || []
-            );
+            const response = await axios({
+                method: "GET",
+                url: `${instanceUrl}/services/data/v59.0/query/?q=${query}`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            console.log("Service appointments response:", {
+                totalSize: response.data?.totalSize,
+                recordCount: response.data?.records?.length,
+            });
+
+            return response.data.records.map((appointment) => ({
+                id: appointment.Id,
+                appointmentNumber: appointment.AppointmentNumber,
+                status: appointment.Status,
+                scheduledStartTime: appointment.SchedStartTime,
+                scheduledEndTime: appointment.SchedEndTime,
+                serviceTerritory:
+                    appointment.ServiceTerritory?.Name || "Unassigned",
+                location: {
+                    street: appointment.Street,
+                    city: appointment.City,
+                    state: appointment.State,
+                    postalCode: appointment.PostalCode,
+                },
+                description: appointment.Description,
+                workTypeName: appointment.WorkType?.Name,
+                workTypeId: appointment.WorkTypeId,
+            }));
         } catch (error) {
-            console.error("Error fetching service appointments:", error);
+            console.error("Error in getServiceAppointments:", {
+                message: error.message,
+                response: error.response?.data,
+                statusCode: error.response?.status,
+            });
             throw error;
         }
     }
