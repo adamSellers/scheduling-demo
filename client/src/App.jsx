@@ -8,6 +8,7 @@ import { theme } from './theme/theme';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import AppointmentFlow from './components/AppointmentFlow/AppointmentFlow';
+import Customers from './components/Customers/Customers';
 
 // Auth check function
 const isAuthenticated = () => {
@@ -50,9 +51,21 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/customers" 
+            element={
+              <ProtectedRoute>
+                <Customers />
+              </ProtectedRoute>
+            } 
+          />
 
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Catch all unauthorized route */}
+          <Route path="*" element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" replace />
+            </ProtectedRoute>
+          } />
         </Routes>
       </Router>
     </ThemeProvider>

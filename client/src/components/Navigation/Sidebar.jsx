@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -13,37 +14,46 @@ import {
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
-  BusinessCenter as BusinessIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Accounts', icon: <BusinessIcon />, path: '/accounts' },
-  { text: 'Contacts', icon: <PeopleIcon />, path: '/contacts' },
+  { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
-const SidebarContent = () => (
-  <Box>
-    <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <Typography variant="h6" sx={{ color: 'primary.main' }}>
-        SF Dashboard
-      </Typography>
+const SidebarContent = () => {
+  const location = useLocation();
+  
+  return (
+    <Box>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="h6" sx={{ color: 'primary.main' }}>
+          SF Dashboard
+        </Typography>
+      </Box>
+      <Divider />
+      <List>
+        {menuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              sx={{ 
+                py: 1.5,
+                bgcolor: location.pathname === item.path ? 'action.selected' : 'transparent'
+              }}
+            >
+              <ListItemIcon sx={{ color: 'primary.main' }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
     </Box>
-    <Divider />
-    <List>
-      {menuItems.map((item) => (
-        <ListItem key={item.text} disablePadding>
-          <ListItemButton sx={{ py: 1.5 }}>
-            <ListItemIcon sx={{ color: 'primary.main' }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItemButton>
-        </ListItem>
-      ))}
-    </List>
-  </Box>
-);
+  );
+};
 
 const Sidebar = ({ mobileOpen, onDrawerToggle, drawerWidth }) => {
   return (

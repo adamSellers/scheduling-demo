@@ -26,9 +26,8 @@ const MainLayout = ({ children }) => {
           flexGrow: 1,
           backgroundColor: 'background.default',
           minHeight: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
           pt: '64px', // AppBar height
+          width: { sm: `calc(100% - ${drawerWidth}px)` }
         }}
       >
         {children}

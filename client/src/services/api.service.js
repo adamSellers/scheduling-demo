@@ -63,6 +63,14 @@ const ApiService = {
             return appointments;
         },
     },
+    customers: {
+        getPersonAccounts: async () => {
+            console.log("Fetching person accounts");
+            const response = await api.get("/customers/person-accounts");
+            console.log("Person accounts response:", response);
+            return response;
+        },
+    },
 };
 
 export default ApiService;

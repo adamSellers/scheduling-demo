@@ -15,8 +15,6 @@ server
 ├── package-lock.json
 ├── package.json
 ├── public
-│   ├── images
-│   ├── javascripts
 │   └── stylesheets
 │       └── style.css
 ├── routes
