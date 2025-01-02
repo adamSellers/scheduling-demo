@@ -26,14 +26,21 @@ const DataTable = ({ columns, data, title }) => {
   };
 
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+    <Paper 
+      sx={{ 
+        width: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       {title && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Typography variant="h6">{title}</Typography>
         </Box>
       )}
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader>
+      <TableContainer sx={{ maxHeight: 440, width: '100%' }}>
+        <Table stickyHeader sx={{ width: '100%' }}>
           <TableHead>
             <TableRow>
               {columns.map((column) => (

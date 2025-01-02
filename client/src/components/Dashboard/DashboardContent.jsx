@@ -2,9 +2,9 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Grid2 as Grid,
   Divider,
   Alert,
+  Grid2 as Grid,
 } from '@mui/material';
 import {
   LocationOn as TerritoryIcon,
@@ -77,28 +77,28 @@ const DashboardContent = ({ territories, resources, appointments, workGroupTypes
       )}
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Service Territories"
             count={territories?.length || 0}
             icon={TerritoryIcon}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Service Resources"
             count={resources?.length || 0}
             icon={ResourceIcon}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Open Appointments"
             count={appointments?.length || 0}
             icon={AppointmentIcon}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <StatCard
             title="Appointment Types"
             count={workGroupTypes?.length || 0}

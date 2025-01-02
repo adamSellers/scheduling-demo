@@ -13,7 +13,7 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', width: '100vw' }}>
       <Navbar onDrawerToggle={handleDrawerToggle} />
       <Sidebar
         mobileOpen={mobileOpen}

@@ -9,6 +9,7 @@ server
 │   └── passport.config.js
 ├── controllers
 │   ├── auth.controller.js
+│   ├── customer.controller.js
 │   └── scheduler.controller.js
 ├── middleware
 │   └── auth.middleware.js
@@ -19,10 +20,12 @@ server
 │       └── style.css
 ├── routes
 │   ├── auth.routes.js
+│   ├── customer.routes.js
 │   ├── index.js
 │   └── scheduler.routes.js
 ├── services
 │   ├── auth.service.js
+│   ├── customer.service.js
 │   └── scheduler.service.js
 └── views
     ├── error.pug
@@ -45,6 +48,8 @@ client
 │   ├── components
 │   │   ├── AppointmentFlow
 │   │   │   └── AppointmentFlow.jsx
+│   │   ├── Customers
+│   │   │   └── Customers.jsx
 │   │   ├── Dashboard
 │   │   │   ├── Dashboard.jsx
 │   │   │   ├── DashboardContent.jsx

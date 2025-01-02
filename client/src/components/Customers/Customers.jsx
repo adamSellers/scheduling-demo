@@ -108,9 +108,11 @@ const Customers = () => {
             Customers
           </Typography>
           <Tooltip title="Refresh customer list">
-            <IconButton onClick={handleRefresh} disabled={loading}>
-              <RefreshIcon />
-            </IconButton>
+            <span>
+              <IconButton onClick={handleRefresh} disabled={loading}>
+                <RefreshIcon />
+              </IconButton>
+            </span>
           </Tooltip>
         </Box>
 
@@ -127,7 +129,7 @@ const Customers = () => {
             placeholder="Search customers by name, email, or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputDecoration={{
+            InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
