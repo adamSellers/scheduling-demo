@@ -14,6 +14,6 @@ router.post(
     "/appointment-candidates",
     schedulerController.getAppointmentCandidates
 );
-router.get("/business-hours/:id", schedulerController.getBusinessHours);
+router.get("/time-slots/:operatingHoursId", schedulerController.getTimeSlots);
 
 module.exports = router;

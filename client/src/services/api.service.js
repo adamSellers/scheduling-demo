@@ -9,14 +9,14 @@ const api = axios.create({
     },
 });
 
-// Response interceptor - simplified to just return response.data
+// Response interceptor
 api.interceptors.response.use(
     (response) => {
         console.log("API Response:", {
             url: response.config.url,
             responseData: response.data,
         });
-        return response.data; // Just return the data directly
+        return response.data;
     },
     (error) => {
         console.error("API Error:", {
@@ -74,12 +74,17 @@ const ApiService = {
             console.log("Appointment candidates API response:", candidates);
             return candidates;
         },
-        getBusinessHours: async (businessHoursId) => {
-            console.log("Fetching business hours for ID:", businessHoursId);
-            const response = await api.get(
-                `/scheduler/business-hours/${businessHoursId}`
+        getTimeSlots: async (operatingHoursId, workTypeGroupId = null) => {
+            console.log(
+                "Fetching time slots for operating hours:",
+                operatingHoursId
             );
-            console.log("Business hours response:", response);
+            const params = workTypeGroupId ? { workTypeGroupId } : {};
+            const response = await api.get(
+                `/scheduler/time-slots/${operatingHoursId}`,
+                { params }
+            );
+            console.log("Time slots API response:", response);
             return response;
         },
     },

@@ -276,39 +276,42 @@ class SchedulerService {
         }
     }
 
-    async getBusinessHours(accessToken, instanceUrl, businessHoursId) {
+    async getTimeSlots(
+        accessToken,
+        instanceUrl,
+        operatingHoursId,
+        workTypeGroupId = null
+    ) {
         if (!instanceUrl) {
-            throw new Error("Instance URL is required for getBusinessHours");
+            throw new Error("Instance URL is required for getTimeSlots");
         }
 
-        if (!businessHoursId) {
-            throw new Error("Business Hours ID is required");
+        if (!operatingHoursId) {
+            throw new Error("Operating Hours ID is required");
         }
 
         try {
-            console.log("Fetching business hours with params:", {
+            console.log("Fetching time slots with params:", {
                 instanceUrl,
                 hasAccessToken: !!accessToken,
-                businessHoursId,
+                operatingHoursId,
+                workTypeGroupId,
             });
 
-            const query = encodeURIComponent(`
+            let query = `
                 SELECT 
-                    Id, Name, TimeZoneSidKey,
-                    MondayStartTime, MondayEndTime,
-                    TuesdayStartTime, TuesdayEndTime,
-                    WednesdayStartTime, WednesdayEndTime,
-                    ThursdayStartTime, ThursdayEndTime,
-                    FridayStartTime, FridayEndTime,
-                    SaturdayStartTime, SaturdayEndTime,
-                    SundayStartTime, SundayEndTime,
-                    IsActive
-                FROM BusinessHours 
-                WHERE Id = '${businessHoursId}'
-                AND IsActive = true
-            `);
+                    Id, TimeSlotNumber, StartTime, EndTime, 
+                    DayOfWeek, Type, MaxAppointments,
+                    WorkTypeGroupId
+                FROM TimeSlot 
+                WHERE OperatingHoursId = '${operatingHoursId}'
+            `;
 
-            console.log("Making query:", query);
+            if (workTypeGroupId) {
+                query += ` AND (WorkTypeGroupId = '${workTypeGroupId}' OR WorkTypeGroupId = null)`;
+            }
+
+            query = encodeURIComponent(query);
 
             const response = await axios({
                 method: "GET",
@@ -319,29 +322,38 @@ class SchedulerService {
                 },
             });
 
-            console.log("Business hours response:", response.data);
+            console.log("Time slots response:", response.data);
 
             if (!response.data.records || response.data.records.length === 0) {
                 throw new Error(
-                    `No active business hours found for ID: ${businessHoursId}`
+                    `No time slots found for Operating Hours ID: ${operatingHoursId}`
                 );
             }
 
-            return response.data.records[0];
+            return response.data.records.map((slot) => ({
+                id: slot.Id,
+                name: slot.TimeSlotNumber,
+                startTime: slot.StartTime,
+                endTime: slot.EndTime,
+                dayOfWeek: slot.DayOfWeek,
+                type: slot.Type,
+                maxAppointments: slot.MaxAppointments,
+                workTypeGroupId: slot.WorkTypeGroupId,
+            }));
         } catch (error) {
-            console.error("Error fetching business hours:", {
+            console.error("Error fetching time slots:", {
                 error,
                 message: error.message,
                 response: error.response?.data,
                 status: error.response?.status,
                 config: error.config,
             });
-            throw new Error(`Error fetching business hours: ${error.message}`);
+            throw new Error(`Error fetching time slots: ${error.message}`);
         }
     }
 
-    isWithinBusinessHours(businessHours, dateTime) {
-        if (!businessHours || !dateTime) {
+    isWithinTimeSlot(timeSlot, dateTime) {
+        if (!timeSlot || !dateTime) {
             return false;
         }
 
@@ -355,27 +367,21 @@ class SchedulerService {
             "Friday",
             "Saturday",
         ];
-        const day = days[date.getDay()];
+        const dayOfWeek = days[date.getDay()];
 
-        const startTimeField = `${day}StartTime`;
-        const endTimeField = `${day}EndTime`;
-
-        if (!businessHours[startTimeField] || !businessHours[endTimeField]) {
+        if (dayOfWeek !== timeSlot.dayOfWeek) {
             return false;
         }
 
-        // Convert the date to territory timezone for comparison
         const timeString = date.toLocaleTimeString("en-US", {
             hour12: false,
-            timeZone: businessHours.TimeZoneSidKey,
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
         });
 
         return (
-            timeString >= businessHours[startTimeField] &&
-            timeString <= businessHours[endTimeField]
+            timeString >= timeSlot.startTime && timeString <= timeSlot.endTime
         );
     }
 }

@@ -155,7 +155,7 @@ const schedulerController = {
         }
     },
 
-    getBusinessHours: async (req, res) => {
+    getTimeSlots: async (req, res) => {
         if (!req.user?.accessToken) {
             return res.status(401).json({ error: "No access token available" });
         }
@@ -166,27 +166,29 @@ const schedulerController = {
                 .json({ error: "No Salesforce instance URL available" });
         }
 
-        if (!req.params.id) {
+        if (!req.params.operatingHoursId) {
             return res
                 .status(400)
-                .json({ error: "Business Hours ID is required" });
+                .json({ error: "Operating Hours ID is required" });
         }
 
         try {
-            console.log("Fetching business hours with:", {
+            console.log("Fetching time slots with:", {
                 hasAccessToken: !!req.user?.accessToken,
                 instanceUrl: req.user?.instanceUrl,
-                businessHoursId: req.params.id,
+                operatingHoursId: req.params.operatingHoursId,
+                workTypeGroupId: req.query.workTypeGroupId,
             });
 
-            const businessHours = await schedulerService.getBusinessHours(
+            const timeSlots = await schedulerService.getTimeSlots(
                 req.user.accessToken,
                 req.user.instanceUrl,
-                req.params.id
+                req.params.operatingHoursId,
+                req.query.workTypeGroupId
             );
-            res.json(businessHours);
+            res.json(timeSlots);
         } catch (error) {
-            console.error("Business hours fetch error:", {
+            console.error("Time slots fetch error:", {
                 message: error.message,
                 response: error.response?.data,
                 stack: error.stack,
@@ -199,7 +201,7 @@ const schedulerController = {
             }
 
             res.status(500).json({
-                error: "Error fetching business hours",
+                error: "Error fetching time slots",
                 details: error.message,
                 code: error.response?.status,
             });

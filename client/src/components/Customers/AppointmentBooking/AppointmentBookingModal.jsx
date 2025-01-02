@@ -144,6 +144,7 @@ const AppointmentBookingModal = ({
             onSelect={handleTimeSlotSelect}
             loading={loadingTimeSlots}
             territory={selectedTerritory}
+            selectedWorkType={selectedWorkType}
           />
         );
       default:
