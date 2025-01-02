@@ -62,6 +62,26 @@ const ApiService = {
             console.log("Appointments API response:", appointments);
             return appointments;
         },
+        getAppointmentCandidates: async (params) => {
+            console.log(
+                "Calling getAppointmentCandidates API with params:",
+                params
+            );
+            const candidates = await api.post(
+                "/scheduler/appointment-candidates",
+                params
+            );
+            console.log("Appointment candidates API response:", candidates);
+            return candidates;
+        },
+        getBusinessHours: async (businessHoursId) => {
+            console.log("Fetching business hours for ID:", businessHoursId);
+            const response = await api.get(
+                `/scheduler/business-hours/${businessHoursId}`
+            );
+            console.log("Business hours response:", response);
+            return response;
+        },
     },
     customers: {
         getPersonAccounts: async () => {

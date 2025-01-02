@@ -154,6 +154,89 @@ const schedulerController = {
             });
         }
     },
+
+    getBusinessHours: async (req, res) => {
+        if (!req.user?.accessToken) {
+            return res.status(401).json({ error: "No access token available" });
+        }
+
+        if (!req.user?.instanceUrl) {
+            return res
+                .status(401)
+                .json({ error: "No Salesforce instance URL available" });
+        }
+
+        if (!req.params.id) {
+            return res
+                .status(400)
+                .json({ error: "Business Hours ID is required" });
+        }
+
+        try {
+            console.log("Fetching business hours with:", {
+                hasAccessToken: !!req.user?.accessToken,
+                instanceUrl: req.user?.instanceUrl,
+                businessHoursId: req.params.id,
+            });
+
+            const businessHours = await schedulerService.getBusinessHours(
+                req.user.accessToken,
+                req.user.instanceUrl,
+                req.params.id
+            );
+            res.json(businessHours);
+        } catch (error) {
+            console.error("Business hours fetch error:", {
+                message: error.message,
+                response: error.response?.data,
+                stack: error.stack,
+            });
+
+            if (error.response?.status === 401) {
+                return res
+                    .status(401)
+                    .json({ error: "Authentication error with Salesforce" });
+            }
+
+            res.status(500).json({
+                error: "Error fetching business hours",
+                details: error.message,
+                code: error.response?.status,
+            });
+        }
+    },
+
+    getAppointmentCandidates: async (req, res) => {
+        if (!req.user?.accessToken) {
+            return res.status(401).json({ error: "No access token available" });
+        }
+
+        if (!req.user?.instanceUrl) {
+            return res
+                .status(401)
+                .json({ error: "No Salesforce instance URL available" });
+        }
+
+        try {
+            const candidates = await schedulerService.getAppointmentCandidates(
+                req.user.accessToken,
+                req.user.instanceUrl,
+                req.body
+            );
+            res.json(candidates);
+        } catch (error) {
+            console.error("Appointment candidates fetch error:", error);
+            if (error.response?.status === 401) {
+                return res
+                    .status(401)
+                    .json({ error: "Authentication error with Salesforce" });
+            }
+            res.status(500).json({
+                error: "Error fetching appointment candidates",
+                details: error.message,
+            });
+        }
+    },
 };
 
 module.exports = schedulerController;

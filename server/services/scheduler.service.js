@@ -10,7 +10,8 @@ class SchedulerService {
         accessToken,
         endpoint,
         method = "GET",
-        params = {}
+        params = {},
+        isSchedulingApi = true
     ) {
         if (!instanceUrl) {
             throw new Error("Instance URL is required for API request");
@@ -18,7 +19,9 @@ class SchedulerService {
 
         const config = {
             method,
-            url: `${instanceUrl}/services/data/v59.0/connect/scheduling${endpoint}`,
+            url: `${instanceUrl}/services/data/v59.0/${
+                isSchedulingApi ? "connect/scheduling" : "scheduling"
+            }${endpoint}`,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
@@ -93,8 +96,6 @@ class SchedulerService {
         );
 
         try {
-            console.log("Fetching service appointments with query:", query);
-
             const response = await axios({
                 method: "GET",
                 url: `${instanceUrl}/services/data/v59.0/query/?q=${query}`,
@@ -102,11 +103,6 @@ class SchedulerService {
                     Authorization: `Bearer ${accessToken}`,
                     "Content-Type": "application/json",
                 },
-            });
-
-            console.log("Service appointments response:", {
-                totalSize: response.data?.totalSize,
-                recordCount: response.data?.records?.length,
             });
 
             return response.data.records.map((appointment) => ({
@@ -144,29 +140,12 @@ class SchedulerService {
             );
         }
 
-        console.log("Starting getServiceTerritories:", {
-            hasAccessToken: !!accessToken,
-            instanceUrl,
-        });
-
-        // First get all work type groups
         const workGroupTypes = await this.getWorkGroupTypes(
             accessToken,
             instanceUrl
         );
 
-        console.log("Got work group types for territories:", {
-            count: workGroupTypes?.length,
-            workGroupTypes: workGroupTypes?.map((wg) => ({
-                id: wg.id,
-                name: wg.name,
-            })),
-        });
-
         if (!workGroupTypes?.length) {
-            console.log(
-                "No work group types found, returning empty territories array"
-            );
             return [];
         }
 
@@ -179,10 +158,6 @@ class SchedulerService {
         // Fetch territories for each work type group
         const territoriesPromises = workGroupTypes.map(async (workGroup) => {
             try {
-                console.log(
-                    `Fetching territories for work group: ${workGroup.name} (${workGroup.id})`
-                );
-
                 const response = await axios({
                     method: "GET",
                     url: `${instanceUrl}/services/data/v59.0/connect/scheduling/service-territories`,
@@ -198,21 +173,11 @@ class SchedulerService {
                     },
                 });
 
-                console.log(
-                    `Territory response for work group ${workGroup.id}:`,
-                    {
-                        status: response.status,
-                        territoryCount:
-                            response.data?.result?.serviceTerritories?.length,
-                    }
-                );
-
                 return response.data.result.serviceTerritories;
             } catch (error) {
                 console.error(
                     `Error fetching territories for work group ${workGroup.id}:`,
-                    error.message,
-                    error.response?.data
+                    error
                 );
                 return [];
             }
@@ -230,11 +195,6 @@ class SchedulerService {
             ).values()
         );
 
-        console.log("Final territories result:", {
-            totalCount: uniqueTerritories.length,
-            firstTerritory: uniqueTerritories[0],
-        });
-
         // Transform the data into the required format
         return uniqueTerritories.map((territory) => ({
             id: territory.id,
@@ -249,23 +209,106 @@ class SchedulerService {
 
     async getWorkGroupTypes(accessToken, instanceUrl) {
         if (!instanceUrl) {
-            console.error("No instanceUrl provided to getWorkGroupTypes");
             throw new Error("Instance URL is required for getWorkGroupTypes");
         }
-
-        console.log("Starting getWorkGroupTypes:", {
-            hasAccessToken: !!accessToken,
-            instanceUrl,
-        });
 
         const query = encodeURIComponent(
             "SELECT Id, Name, IsActive, GroupType FROM WorkTypeGroup WHERE IsActive = true ORDER BY Name DESC"
         );
 
         try {
-            console.log(
-                `Making SOQL query to: ${instanceUrl}/services/data/v59.0/query/?q=${query}`
+            const response = await axios({
+                method: "GET",
+                url: `${instanceUrl}/services/data/v59.0/query/?q=${query}`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            return response.data.records.map((workGroup) => ({
+                id: workGroup.Id,
+                name: workGroup.Name,
+                isActive: workGroup.IsActive,
+                groupType: workGroup.GroupType || "Standard",
+            }));
+        } catch (error) {
+            console.error("Error in getWorkGroupTypes:", error);
+            throw error;
+        }
+    }
+
+    async getAppointmentCandidates(accessToken, instanceUrl, params) {
+        if (!instanceUrl) {
+            throw new Error(
+                "Instance URL is required for getAppointmentCandidates"
             );
+        }
+
+        try {
+            const response = await axios({
+                method: "POST",
+                url: `${instanceUrl}/services/data/v59.0/scheduling/getAppointmentCandidates`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                data: params,
+            });
+
+            if (
+                !response?.data?.candidates ||
+                !Array.isArray(response.data.candidates)
+            ) {
+                console.error("Unexpected response format:", response.data);
+                return [];
+            }
+
+            return response.data.candidates.map((candidate) => ({
+                startTime: candidate.startTime,
+                endTime: candidate.endTime,
+                territoryId: candidate.territoryId,
+                resources: candidate.resources,
+            }));
+        } catch (error) {
+            console.error("Error in getAppointmentCandidates:", error);
+            throw error;
+        }
+    }
+
+    async getBusinessHours(accessToken, instanceUrl, businessHoursId) {
+        if (!instanceUrl) {
+            throw new Error("Instance URL is required for getBusinessHours");
+        }
+
+        if (!businessHoursId) {
+            throw new Error("Business Hours ID is required");
+        }
+
+        try {
+            console.log("Fetching business hours with params:", {
+                instanceUrl,
+                hasAccessToken: !!accessToken,
+                businessHoursId,
+            });
+
+            const query = encodeURIComponent(`
+                SELECT 
+                    Id, Name, TimeZoneSidKey,
+                    MondayStartTime, MondayEndTime,
+                    TuesdayStartTime, TuesdayEndTime,
+                    WednesdayStartTime, WednesdayEndTime,
+                    ThursdayStartTime, ThursdayEndTime,
+                    FridayStartTime, FridayEndTime,
+                    SaturdayStartTime, SaturdayEndTime,
+                    SundayStartTime, SundayEndTime,
+                    IsActive
+                FROM BusinessHours 
+                WHERE Id = '${businessHoursId}'
+                AND IsActive = true
+            `);
+
+            console.log("Making query:", query);
 
             const response = await axios({
                 method: "GET",
@@ -276,30 +319,64 @@ class SchedulerService {
                 },
             });
 
-            console.log("Work group types raw response:", {
-                status: response.status,
-                totalSize: response.data?.totalSize,
-                recordCount: response.data?.records?.length,
-                firstRecord: response.data?.records?.[0],
-            });
+            console.log("Business hours response:", response.data);
 
-            const workGroupTypes = response.data.records.map((workGroup) => ({
-                id: workGroup.Id,
-                name: workGroup.Name,
-                isActive: workGroup.IsActive,
-                groupType: workGroup.GroupType || "Standard",
-            }));
+            if (!response.data.records || response.data.records.length === 0) {
+                throw new Error(
+                    `No active business hours found for ID: ${businessHoursId}`
+                );
+            }
 
-            console.log("Processed work group types:", workGroupTypes);
-            return workGroupTypes;
+            return response.data.records[0];
         } catch (error) {
-            console.error("Error in getWorkGroupTypes:", {
+            console.error("Error fetching business hours:", {
+                error,
                 message: error.message,
                 response: error.response?.data,
-                statusCode: error.response?.status,
+                status: error.response?.status,
+                config: error.config,
             });
-            throw error;
+            throw new Error(`Error fetching business hours: ${error.message}`);
         }
+    }
+
+    isWithinBusinessHours(businessHours, dateTime) {
+        if (!businessHours || !dateTime) {
+            return false;
+        }
+
+        const date = new Date(dateTime);
+        const days = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+        ];
+        const day = days[date.getDay()];
+
+        const startTimeField = `${day}StartTime`;
+        const endTimeField = `${day}EndTime`;
+
+        if (!businessHours[startTimeField] || !businessHours[endTimeField]) {
+            return false;
+        }
+
+        // Convert the date to territory timezone for comparison
+        const timeString = date.toLocaleTimeString("en-US", {
+            hour12: false,
+            timeZone: businessHours.TimeZoneSidKey,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+
+        return (
+            timeString >= businessHours[startTimeField] &&
+            timeString <= businessHours[endTimeField]
+        );
     }
 }
 
