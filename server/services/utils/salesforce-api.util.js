@@ -197,8 +197,12 @@ class SalesforceApiUtil {
     static async getServiceResources(instanceUrl, accessToken) {
         try {
             const query = `
-                SELECT Id, Name, RelatedRecordId, ResourceType, 
-                       IsActive, LastKnownLocationDate
+                SELECT Id, Name, RelatedRecordId, ResourceType, IsActive, 
+                       RelatedRecord.FirstName, RelatedRecord.LastName,
+                       RelatedRecord.Email, RelatedRecord.Title,
+                       RelatedRecord.LanguageLocaleKey,
+                       RelatedRecord.SmallPhotoUrl,
+                       LastKnownLocationDate
                 FROM ServiceResource
                 WHERE IsActive = true
                 ORDER BY Name ASC
@@ -216,6 +220,12 @@ class SalesforceApiUtil {
                 resourceType: resource.ResourceType,
                 isActive: resource.IsActive,
                 relatedRecordId: resource.RelatedRecordId,
+                firstName: resource.RelatedRecord?.FirstName || "",
+                lastName: resource.RelatedRecord?.LastName || "",
+                email: resource.RelatedRecord?.Email || "",
+                title: resource.RelatedRecord?.Title || "",
+                language: resource.RelatedRecord?.LanguageLocaleKey || "",
+                photoUrl: resource.RelatedRecord?.SmallPhotoUrl || "",
                 lastKnownLocation: resource.LastKnownLocationDate,
             }));
         } catch (error) {
@@ -254,6 +264,29 @@ class SalesforceApiUtil {
         } catch (error) {
             console.error("Error creating service appointment:", error);
             throw error;
+        }
+    }
+
+    static async getUserPhoto(instanceUrl, accessToken, userId) {
+        try {
+            const response = await axios({
+                method: "GET",
+                url: `${instanceUrl}/services/data/v59.0/connect/user-profiles/${userId}/photo`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                responseType: "arraybuffer",
+            });
+
+            // Convert the binary data to base64
+            const base64 = Buffer.from(response.data, "binary").toString(
+                "base64"
+            );
+            return `data:${response.headers["content-type"]};base64,${base64}`;
+        } catch (error) {
+            console.error("Error fetching user photo:", error);
+            return null;
         }
     }
 }

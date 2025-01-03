@@ -31,7 +31,20 @@ class SchedulerService {
         };
 
         try {
+            console.log("Making scheduler API request:", {
+                url: config.url,
+                method: config.method,
+                params: config.params,
+                data: config.data,
+            });
+
             const response = await axios(config);
+
+            console.log("Scheduler API response:", {
+                status: response.status,
+                data: response.data,
+            });
+
             return response.data;
         } catch (error) {
             console.error("Error in makeApiRequest:", {
@@ -49,13 +62,21 @@ class SchedulerService {
         }
 
         try {
-            const query = encodeURIComponent(
-                "SELECT Id, Name, RelatedRecordId, ResourceType, IsActive, Description FROM ServiceResource WHERE IsActive = true ORDER BY Name ASC"
-            );
+            const query = encodeURIComponent(`
+                SELECT Id, Name, RelatedRecordId, ResourceType, IsActive,
+                       RelatedRecord.FirstName, RelatedRecord.LastName,
+                       RelatedRecord.Email, RelatedRecord.Title,
+                       RelatedRecord.LanguageLocaleKey,
+                       RelatedRecord.SmallPhotoUrl,
+                       Description
+                FROM ServiceResource 
+                WHERE IsActive = true 
+                ORDER BY Name ASC
+            `);
 
             const response = await axios({
                 method: "GET",
-                url: `${instanceUrl}/services/data/v62.0/query/?q=${query}`,
+                url: `${instanceUrl}/services/data/v59.0/query/?q=${query}`,
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                     "Content-Type": "application/json",
@@ -72,6 +93,12 @@ class SchedulerService {
                         : resource.ResourceType,
                 isActive: resource.IsActive,
                 description: resource.Description,
+                firstName: resource.RelatedRecord?.FirstName || "",
+                lastName: resource.RelatedRecord?.LastName || "",
+                email: resource.RelatedRecord?.Email || "",
+                title: resource.RelatedRecord?.Title || "",
+                language: resource.RelatedRecord?.LanguageLocaleKey || "",
+                photoUrl: resource.RelatedRecord?.SmallPhotoUrl || "",
             }));
         } catch (error) {
             console.error("Error fetching service resources:", error);
@@ -86,14 +113,14 @@ class SchedulerService {
             );
         }
 
-        const query = encodeURIComponent(
-            `SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, 
+        const query = encodeURIComponent(`
+            SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, 
             ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, 
             PostalCode, Description, WorkType.Name, WorkTypeId 
             FROM ServiceAppointment 
             WHERE Status NOT IN ('Completed','Canceled') 
-            ORDER BY SchedStartTime ASC`
-        );
+            ORDER BY SchedStartTime ASC
+        `);
 
         try {
             const response = await axios({
@@ -299,8 +326,7 @@ class SchedulerService {
             });
 
             let query = `
-                SELECT 
-                    Id, TimeSlotNumber, StartTime, EndTime, 
+                SELECT Id, TimeSlotNumber, StartTime, EndTime, 
                     DayOfWeek, Type, MaxAppointments,
                     WorkTypeGroupId
                 FROM TimeSlot 
