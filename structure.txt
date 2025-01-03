@@ -1,3 +1,43 @@
+server
+├── .env
+├── .gitignore
+├── app.js
+├── bin
+│   └── www
+├── config
+│   ├── cors.config.js
+│   └── passport.config.js
+├── controllers
+│   ├── auth.controller.js
+│   ├── customer.controller.js
+│   └── scheduler.controller.js
+├── middleware
+│   └── auth.middleware.js
+├── package-lock.json
+├── package.json
+├── public
+│   └── stylesheets
+│       └── style.css
+├── routes
+│   ├── auth.routes.js
+│   ├── customer.routes.js
+│   ├── index.js
+│   └── scheduler.routes.js
+├── services
+│   ├── auth.service.js
+│   ├── customer.service.js
+│   ├── scheduler
+│   │   ├── appointment.service.js
+│   │   ├── availability.service.js
+│   │   ├── resource.service.js
+│   │   └── territory.service.js
+│   ├── scheduler.service.js
+│   └── utils
+│       └── salesforce-api.util.js
+└── views
+    ├── error.pug
+    ├── index.pug
+    └── layout.pug
 client
 ├── .gitignore
 ├── README.md
@@ -49,36 +89,3 @@ client
 │   └── theme
 │       └── theme.js
 └── vite.config.js
-server
-├── .env
-├── .gitignore
-├── app.js
-├── bin
-│   └── www
-├── config
-│   ├── cors.config.js
-│   └── passport.config.js
-├── controllers
-│   ├── auth.controller.js
-│   ├── customer.controller.js
-│   └── scheduler.controller.js
-├── middleware
-│   └── auth.middleware.js
-├── package-lock.json
-├── package.json
-├── public
-│   └── stylesheets
-│       └── style.css
-├── routes
-│   ├── auth.routes.js
-│   ├── customer.routes.js
-│   ├── index.js
-│   └── scheduler.routes.js
-├── services
-│   ├── auth.service.js
-│   ├── customer.service.js
-│   └── scheduler.service.js
-└── views
-    ├── error.pug
-    ├── index.pug
-    └── layout.pug

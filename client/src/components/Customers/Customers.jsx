@@ -36,7 +36,8 @@ const Customers = () => {
   // Fetch Salesforce data for appointments
   const { 
     workGroupTypes, 
-    territories, 
+    territories,
+    resources,
     loading: salesforceDataLoading,
     error: salesforceDataError 
   } = useSalesforceData();
@@ -137,6 +138,7 @@ const Customers = () => {
           open={isAppointmentModalOpen}
           onClose={handleCloseAppointmentModal}
           customer={selectedCustomer}
+          resources={resources}
           workGroupTypes={workGroupTypes}
           territories={territories}
           loading={salesforceDataLoading}

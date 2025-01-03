@@ -11,6 +11,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Alert,
 } from '@mui/material';
 import {
   CalendarMonth as CalendarIcon,
@@ -20,16 +21,18 @@ import {
 import WorkTypeSelection from './steps/WorkTypeSelection';
 import TerritorySelection from './steps/TerritorySelection';
 import TimeSlotSelection from './steps/TimeSlotSelection';
+import ResourceSelection from './steps/ResourceSelection';
 import ApiService from '../../../services/api.service';
 
-const steps = ['Select Appointment Type', 'Choose Location', 'Select Time'];
+const steps = ['Select Appointment Type', 'Choose Location', 'Select Time', 'Select Associate'];
 
 const AppointmentBookingModal = ({ 
   open, 
   onClose, 
   customer,
-  workGroupTypes,
-  territories,
+  workGroupTypes = [],
+  territories = [],
+  resources = [],
   loading 
 }) => {
   // Step management state
@@ -40,12 +43,14 @@ const AppointmentBookingModal = ({
   const [selectedWorkType, setSelectedWorkType] = useState(null);
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [selectedResource, setSelectedResource] = useState(null);
   
   // Loading states
   const [timeSlots, setTimeSlots] = useState([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
   const handleWorkTypeSelect = (workType) => {
+    if (!workType) return;
     setSelectedWorkType(workType);
     setActiveStep(1);
   };
@@ -57,13 +62,18 @@ const AppointmentBookingModal = ({
         return;
       }
 
+      if (!territory) {
+        setError('Please select a valid location');
+        return;
+      }
+
       setSelectedTerritory(territory);
       setLoadingTimeSlots(true);
       setError(null);
       
       const startTime = new Date();
       const endTime = new Date();
-      endTime.setDate(endTime.getDate() + 7);
+      endTime.setDate(endTime.getDate() + 7); // Look ahead 7 days
 
       const requestParams = {
         startTime: startTime.toISOString(),
@@ -93,25 +103,50 @@ const AppointmentBookingModal = ({
   };
 
   const handleTimeSlotSelect = (timeSlot) => {
-    setSelectedTimeSlot(timeSlot);
-    // We'll handle the next step in future updates
+    if (timeSlot && timeSlot.resources) {
+      setSelectedTimeSlot(timeSlot);
+      setActiveStep(3);
+    }
+  };
+
+  const handleResourceSelect = (resourceId) => {
+    if (!resourceId) return;
+    setSelectedResource(resourceId);
+    // Future: Add confirmation step or handle booking submission
+    // setActiveStep(4);
   };
 
   const handleBack = () => {
+    setError(null); // Clear any errors when going back
     setActiveStep((prevStep) => prevStep - 1);
-    if (activeStep === 1) {
-      setSelectedTerritory(null);
-    } else if (activeStep === 2) {
-      setSelectedTimeSlot(null);
-      setTimeSlots([]);
+    
+    // Clear the data for the step we're leaving
+    switch (activeStep) {
+      case 1:
+        setSelectedWorkType(null);
+        break;
+      case 2:
+        setSelectedTerritory(null);
+        setTimeSlots([]);
+        break;
+      case 3:
+        setSelectedTimeSlot(null);
+        break;
+      case 4:
+        setSelectedResource(null);
+        break;
+      default:
+        break;
     }
   };
 
   const handleClose = () => {
+    // Reset all state when closing
     setActiveStep(0);
     setSelectedWorkType(null);
     setSelectedTerritory(null);
     setSelectedTimeSlot(null);
+    setSelectedResource(null);
     setTimeSlots([]);
     setError(null);
     onClose();
@@ -145,6 +180,15 @@ const AppointmentBookingModal = ({
             loading={loadingTimeSlots}
             territory={selectedTerritory}
             selectedWorkType={selectedWorkType}
+          />
+        );
+      case 3:
+        return (
+          <ResourceSelection
+            resources={selectedTimeSlot?.resources || []}
+            serviceResources={resources || []}
+            selectedTimeSlot={selectedTimeSlot}
+            onSelect={handleResourceSelect}
           />
         );
       default:
@@ -194,9 +238,9 @@ const AppointmentBookingModal = ({
         </Stepper>
 
         {error && (
-          <Box sx={{ mb: 2 }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
         )}
 
         {renderStepContent(activeStep)}
