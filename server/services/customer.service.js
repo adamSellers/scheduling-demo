@@ -68,6 +68,7 @@ class CustomerService {
 
             return response.data.records.map((account) => ({
                 id: account.Id,
+                salesforceId: account.Id, // Explicitly include Salesforce ID
                 name: account.Name || "No Name",
                 email: account.PersonEmail || "No Email",
                 phone: account.Phone || "No Phone",

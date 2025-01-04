@@ -59,6 +59,7 @@ client
 │   │   │   ├── AppointmentBooking
 │   │   │   │   ├── AppointmentBookingModal.jsx
 │   │   │   │   └── steps
+│   │   │   │       ├── ResourceSelection.jsx
 │   │   │   │       ├── TerritorySelection.jsx
 │   │   │   │       ├── TimeSlotSelection.jsx
 │   │   │   │       └── WorkTypeSelection.jsx

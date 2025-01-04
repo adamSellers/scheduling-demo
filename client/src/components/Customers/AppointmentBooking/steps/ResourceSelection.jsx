@@ -9,15 +9,16 @@ import {
   Typography,
   Alert,
   Chip,
-  Divider,
   Grid,
   Paper,
+  Button,
 } from '@mui/material';
 import { 
   Person as PersonIcon,
   Email as EmailIcon,
   Work as WorkIcon,
   Language as LanguageIcon,
+  ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 
@@ -75,9 +76,32 @@ const ResourceSelection = ({
             <Paper
               key={resourceId}
               elevation={isSelected ? 3 : 1}
-              sx={{ mb: 2, bgcolor: isSelected ? 'primary.light' : 'background.paper' }}
+              sx={{ 
+                mb: 2,
+                bgcolor: isSelected ? 'primary.light' : 'background.paper',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 3
+                },
+                position: 'relative'
+              }}
             >
-              <ListItem disablePadding>
+              <ListItem 
+                disablePadding
+                secondaryAction={
+                  isSelected && (
+                    <Button
+                      variant="contained"
+                      endIcon={<ArrowForwardIcon />}
+                      onClick={() => onSelect(resourceId)}
+                      sx={{ mr: 2 }}
+                    >
+                      Confirm Associate
+                    </Button>
+                  )
+                }
+              >
                 <ListItemButton 
                   onClick={() => onSelect(resourceId)}
                   selected={isSelected}
@@ -144,9 +168,9 @@ const ResourceSelection = ({
                         <Box sx={{ mt: 1 }}>
                           <Chip
                             size="small"
-                            label="Available"
-                            color="success"
-                            variant="outlined"
+                            label={isSelected ? 'Selected' : 'Available'}
+                            color={isSelected ? 'primary' : 'success'}
+                            variant={isSelected ? 'filled' : 'outlined'}
                           />
                         </Box>
                       </Box>

@@ -28,7 +28,10 @@ const CustomerTable = ({
             size="small"
             variant="outlined"
             startIcon={<EventIcon />}
-            onClick={() => onBookAppointment(row)}
+            onClick={() => {
+              onBookAppointment(row)
+              console.log('Booking appointment for customer:', row);
+            }}
           >
             Book Appointment
           </Button>

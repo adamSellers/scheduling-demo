@@ -61,8 +61,8 @@ const DataTable = ({ columns, data, title }) => {
                 <TableRow hover key={index}>
                   {columns.map((column) => (
                     <TableCell key={column.id} align={column.align || 'left'}>
-                      {column.format ? column.format(row[column.id]) : row[column.id]}
-                    </TableCell>
+                    {column.format ? column.format(row[column.id], row, row) : row[column.id]}
+                  </TableCell>
                   ))}
                 </TableRow>
               ))}

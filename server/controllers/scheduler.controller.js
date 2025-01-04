@@ -239,6 +239,89 @@ const schedulerController = {
             });
         }
     },
+
+    createServiceAppointment: async (req, res) => {
+        if (!req.user?.accessToken) {
+            return res.status(401).json({ error: "No access token available" });
+        }
+
+        if (!req.user?.instanceUrl) {
+            return res
+                .status(401)
+                .json({ error: "No Salesforce instance URL available" });
+        }
+
+        try {
+            // Validate required appointment data
+            const { serviceAppointment, assignedResources } = req.body;
+
+            if (!serviceAppointment || !assignedResources) {
+                return res.status(400).json({
+                    error: "Invalid appointment data",
+                    details:
+                        "Both serviceAppointment and assignedResources are required",
+                });
+            }
+
+            // Validate required appointment fields
+            const requiredFields = [
+                "parentRecordId",
+                "workTypeId",
+                "serviceTerritoryId",
+                "schedStartTime",
+                "schedEndTime",
+            ];
+            const missingFields = requiredFields.filter(
+                (field) => !serviceAppointment[field]
+            );
+
+            if (missingFields.length > 0) {
+                return res.status(400).json({
+                    error: "Missing required fields",
+                    details: `Required fields missing: ${missingFields.join(
+                        ", "
+                    )}`,
+                });
+            }
+
+            // Validate assigned resources
+            if (
+                !Array.isArray(assignedResources) ||
+                assignedResources.length === 0
+            ) {
+                return res.status(400).json({
+                    error: "Invalid assigned resources",
+                    details: "At least one assigned resource is required",
+                });
+            }
+
+            const appointment = await schedulerService.createServiceAppointment(
+                req.user.accessToken,
+                req.user.instanceUrl,
+                req.body
+            );
+
+            res.status(201).json(appointment);
+        } catch (error) {
+            console.error("Error creating service appointment:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+
+            if (error.response?.status === 401) {
+                return res
+                    .status(401)
+                    .json({ error: "Authentication error with Salesforce" });
+            }
+
+            res.status(error.response?.status || 500).json({
+                error: "Error creating service appointment",
+                details: error.message,
+                salesforceError: error.response?.data,
+            });
+        }
+    },
 };
 
 module.exports = schedulerController;

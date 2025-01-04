@@ -64,6 +64,7 @@ const Customers = () => {
   };
 
   const handleBookAppointment = (customer) => {
+    console.log('Setting selected customer:', customer);
     setSelectedCustomer(customer);
     setIsAppointmentModalOpen(true);
   };

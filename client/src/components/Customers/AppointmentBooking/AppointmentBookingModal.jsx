@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -24,7 +24,7 @@ import TimeSlotSelection from './steps/TimeSlotSelection';
 import ResourceSelection from './steps/ResourceSelection';
 import ApiService from '../../../services/api.service';
 
-const steps = ['Select Appointment Type', 'Choose Location', 'Select Time', 'Select Associate'];
+const steps = ['Select Appointment Type', 'Choose Location', 'Select Time', 'Select Associate', 'Confirm Booking'];
 
 const AppointmentBookingModal = ({ 
   open, 
@@ -33,7 +33,8 @@ const AppointmentBookingModal = ({
   workGroupTypes = [],
   territories = [],
   resources = [],
-  loading 
+  loading,
+  onSuccess 
 }) => {
   // Step management state
   const [activeStep, setActiveStep] = useState(0);
@@ -44,32 +45,41 @@ const AppointmentBookingModal = ({
   const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // Loading states
   const [timeSlots, setTimeSlots] = useState([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
+  // Monitor customer prop for debugging
+  useEffect(() => {
+    console.log('Customer prop in modal:', customer);
+  }, [customer]);
+
   const handleWorkTypeSelect = (workType) => {
-    if (!workType) return;
+    console.log('Selected work type:', workType);
+    if (!workType?.id) return;
     setSelectedWorkType(workType);
     setActiveStep(1);
   };
 
   const handleTerritorySelect = async (territory) => {
     try {
+      setError(null);
+      
       if (!selectedWorkType?.id) {
         setError('Please select an appointment type first');
         return;
       }
 
-      if (!territory) {
+      if (!territory?.id) {
         setError('Please select a valid location');
         return;
       }
 
+      console.log('Selected territory:', territory);
       setSelectedTerritory(territory);
       setLoadingTimeSlots(true);
-      setError(null);
       
       const startTime = new Date();
       const endTime = new Date();
@@ -78,24 +88,22 @@ const AppointmentBookingModal = ({
       const requestParams = {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        workTypeGroupId: selectedWorkType.id,
+        workTypeId: selectedWorkType.id, // Using actual WorkType ID now
         territoryIds: [territory.id]
       };
 
-      if (customer?.id) {
-        requestParams.accountId = customer.id;
-      }
-
+      console.log('Fetching appointment candidates with params:', requestParams);
       const candidates = await ApiService.scheduler.getAppointmentCandidates(requestParams);
       
       if (Array.isArray(candidates) && candidates.length > 0) {
+        console.log('Retrieved time slots:', candidates);
         setTimeSlots(candidates);
         setActiveStep(2);
       } else {
         setError('No available time slots found for the selected criteria.');
       }
     } catch (error) {
-      console.error('Error details:', { error, selectedWorkType, selectedTerritory: territory, customer });
+      console.error('Error fetching time slots:', error);
       setError(error?.message || 'Failed to fetch available time slots. Please try again.');
     } finally {
       setLoadingTimeSlots(false);
@@ -103,17 +111,103 @@ const AppointmentBookingModal = ({
   };
 
   const handleTimeSlotSelect = (timeSlot) => {
-    if (timeSlot && timeSlot.resources) {
+    console.log('Selected time slot:', timeSlot);
+    if (timeSlot?.startTime && timeSlot?.endTime && timeSlot?.resources) {
       setSelectedTimeSlot(timeSlot);
       setActiveStep(3);
     }
   };
 
   const handleResourceSelect = (resourceId) => {
-    if (!resourceId) return;
-    setSelectedResource(resourceId);
-    // Future: Add confirmation step or handle booking submission
-    // setActiveStep(4);
+    console.log('Selected resource:', resourceId);
+    if (resourceId) {
+      setSelectedResource(resourceId);
+      setActiveStep(4);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      setError(null);
+      
+      // Detailed validation with logging
+      const missingFields = [];
+      
+      console.log('Validating appointment data:', {
+        workType: selectedWorkType,
+        territory: selectedTerritory,
+        timeSlot: selectedTimeSlot,
+        resource: selectedResource,
+        customerId: customer?.id
+      });
+
+      if (!selectedWorkType?.id) missingFields.push('Work Type');
+      if (!selectedTerritory?.id) missingFields.push('Territory');
+      if (!selectedTimeSlot?.startTime || !selectedTimeSlot?.endTime) missingFields.push('Time Slot');
+      if (!selectedResource) missingFields.push('Resource');
+      if (!customer?.id) missingFields.push('Customer ID');
+
+      if (missingFields.length > 0) {
+        const errorMessage = `Missing required fields: ${missingFields.join(', ')}`;
+        console.error(errorMessage);
+        setError(errorMessage);
+        return;
+      }
+
+      const appointmentData = {
+        serviceAppointment: {
+          parentRecordId: customer.id,
+          workTypeId: selectedWorkType.id,
+          serviceTerritoryId: selectedTerritory.id,
+          schedStartTime: selectedTimeSlot.startTime,
+          schedEndTime: selectedTimeSlot.endTime,
+          appointmentType: "In Person",
+          appointmentMode: "Regular",
+          description: `Luxury client appointment with ${customer.name}`,
+          // Include address if available from territory
+          ...(selectedTerritory.address && {
+            street: selectedTerritory.address.split(',')[0]?.trim(),
+            city: selectedTerritory.address.split(',')[1]?.trim(),
+            state: selectedTerritory.address.split(',')[2]?.trim(),
+          }),
+          extendedFields: [
+            {
+              name: "Email",
+              value: customer.email || ''
+            },
+            {
+              name: "Phone",
+              value: customer.phone || ''
+            }
+          ]
+        },
+        assignedResources: [
+          {
+            serviceResourceId: selectedResource,
+            isPrimaryResource: true,
+            isRequiredResource: true,
+            extendedFields: []
+          }
+        ]
+      };
+
+      console.log('Submitting appointment data:', appointmentData);
+      
+      const response = await ApiService.scheduler.createAppointment(appointmentData);
+      console.log('Appointment creation response:', response);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      handleClose();
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      setError(error?.message || 'Failed to create appointment. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -186,9 +280,10 @@ const AppointmentBookingModal = ({
         return (
           <ResourceSelection
             resources={selectedTimeSlot?.resources || []}
-            serviceResources={resources || []}
+            serviceResources={resources}
             selectedTimeSlot={selectedTimeSlot}
             onSelect={handleResourceSelect}
+            selectedResource={selectedResource}
           />
         );
       default:
@@ -243,7 +338,50 @@ const AppointmentBookingModal = ({
           </Alert>
         )}
 
-        {renderStepContent(activeStep)}
+        {activeStep === 4 ? (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Confirm Appointment Details
+            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Service Type
+              </Typography>
+              <Typography variant="body1">
+                {selectedWorkType?.name}
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Location
+              </Typography>
+              <Typography variant="body1">
+                {selectedTerritory?.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {selectedTerritory?.address}
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Date & Time
+              </Typography>
+              <Typography variant="body1">
+                {selectedTimeSlot && new Date(selectedTimeSlot.startTime).toLocaleString()}
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Associate
+              </Typography>
+              <Typography variant="body1">
+                {resources?.find(r => r.id === selectedResource)?.name || 'Selected Associate'}
+              </Typography>
+            </Box>
+          </Box>
+        ) : (
+          renderStepContent(activeStep)
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -254,6 +392,15 @@ const AppointmentBookingModal = ({
         >
           Back
         </Button>
+        {activeStep === 4 && (
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={submitting || !selectedWorkType || !selectedTerritory || !selectedTimeSlot || !selectedResource}
+          >
+            {submitting ? 'Creating Appointment...' : 'Confirm Booking'}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
