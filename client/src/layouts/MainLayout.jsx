@@ -2,6 +2,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import Navbar from '../components/Navigation/Navbar';
 import Sidebar from '../components/Navigation/Sidebar';
+import Footer from '../components/Navigation/Footer';
 
 const drawerWidth = 240;
 
@@ -29,18 +30,27 @@ const MainLayout = ({ children }) => {
           pt: '64px', // AppBar height
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           display: 'flex',
-          justifyContent: 'center'
+          flexDirection: 'column',
         }}
       >
         <Box
           sx={{
-            maxWidth: '1200px',
-            width: '100%',
-            px: 3, // Horizontal padding
+            display: 'flex',
+            justifyContent: 'center',
+            flexGrow: 1,
           }}
         >
-          {children}
+          <Box
+            sx={{
+              maxWidth: '1200px',
+              width: '100%',
+              px: 3, // Horizontal padding
+            }}
+          >
+            {children}
+          </Box>
         </Box>
+        <Footer />
       </Box>
     </Box>
   );

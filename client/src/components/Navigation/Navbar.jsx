@@ -70,8 +70,7 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
           boxShadow: 1,
         }}
       >
-        <Box sx={{ maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-          <Toolbar>
+          <Toolbar sx={{ px: { xs: 2, sm: 3 }, minHeight: '64px' }}>
             <IconButton
               color="inherit"
               edge="start"
@@ -138,7 +137,6 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
               </MenuItem>
             </Menu>
           </Toolbar>
-        </Box>
       </AppBar>
       <Snackbar
         open={showCopySuccess}
