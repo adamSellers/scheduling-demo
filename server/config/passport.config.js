@@ -1,7 +1,7 @@
-const session = require("express-session");
-const passport = require("passport");
-const RedisStore = require("connect-redis").default;
-const { createClient } = require("@redis/client");
+import session from "express-session";
+import passport from "passport";
+import { createClient } from "@redis/client";
+import { default as RedisStore } from "connect-redis";
 
 class PassportConfig {
     static async initialize(app) {
@@ -26,10 +26,6 @@ class PassportConfig {
             console.log("Connected to Redis successfully");
         });
 
-        redisClient.on("reconnecting", () => {
-            console.log("Redis client reconnecting...");
-        });
-
         redisClient.on("ready", () => {
             console.log("Redis client ready");
         });
@@ -40,12 +36,11 @@ class PassportConfig {
         } catch (error) {
             console.error("Failed to connect to Redis:", error);
             if (process.env.NODE_ENV === "production") {
-                console.error("Full Redis connection error:", error);
                 process.exit(1);
             }
         }
 
-        // Initialize Redis store with connected client
+        // Initialize Redis store
         const redisStore = new RedisStore({
             client: redisClient,
             prefix: "sess:",
@@ -57,7 +52,7 @@ class PassportConfig {
                 secret: process.env.SESSION_SECRET || "your-secret-key",
                 resave: false,
                 saveUninitialized: false,
-                proxy: true, // Required for Heroku SSL
+                proxy: true,
                 cookie: {
                     secure: process.env.NODE_ENV === "production",
                     sameSite:
@@ -67,6 +62,7 @@ class PassportConfig {
                 },
             })
         );
+
         app.use(passport.initialize());
         app.use(passport.session());
 
@@ -83,9 +79,7 @@ class PassportConfig {
         // Handle application shutdown
         process.on("SIGTERM", cleanup);
         process.on("SIGINT", cleanup);
-
-        return redisClient; // Return client for potential external use
     }
 }
 
-module.exports = PassportConfig;
+export default PassportConfig;
