@@ -5,18 +5,19 @@ const { createClient } = require("@redis/client");
 
 class PassportConfig {
     static async initialize(app) {
-        // Initialize Redis client
+        // Initialize Redis client with SSL configuration
         const redisClient = createClient({
             url: process.env.REDIS_URL || "redis://localhost:6379",
-            legacyMode: false,
+            socket: {
+                tls: process.env.NODE_ENV === "production",
+                rejectUnauthorized: false, // Required for Heroku Redis SSL
+            },
         });
 
         // Redis error handling
         redisClient.on("error", (err) => {
             console.error("Redis Client Error:", err);
-            // You might want to implement some fallback mechanism here
             if (process.env.NODE_ENV === "production") {
-                // Notify your error tracking service (e.g., Sentry)
                 console.error("Production Redis error:", err);
             }
         });
