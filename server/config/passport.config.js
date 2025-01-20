@@ -11,12 +11,10 @@ class PassportConfig {
                 proxy: true, // Required for Heroku SSL
                 cookie: {
                     secure: process.env.NODE_ENV === "production",
-                    sameSite: "none",
+                    sameSite:
+                        process.env.NODE_ENV === "production" ? "none" : "lax",
                     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-                    domain:
-                        process.env.NODE_ENV === "production"
-                            ? ".herokuapp.com"
-                            : undefined,
+                    httpOnly: true,
                 },
             })
         );

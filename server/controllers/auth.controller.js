@@ -14,11 +14,24 @@ const authController = {
             session: true,
         })(req, res, (err) => {
             if (err) return next(err);
-            res.redirect(
-                process.env.NODE_ENV === "production"
-                    ? "https://china-scheduler-demo-674493312f03.herokuapp.com/dashboard"
-                    : "http://localhost:5173/dashboard"
-            );
+
+            // Ensure session is saved before redirect
+            req.session.save((err) => {
+                if (err) {
+                    console.error("Session save error:", err);
+                    return next(err);
+                }
+                console.log("Session saved successfully:", {
+                    sessionID: req.sessionID,
+                    hasUser: !!req.user,
+                });
+
+                res.redirect(
+                    process.env.NODE_ENV === "production"
+                        ? "https://china-scheduler-demo-674493312f03.herokuapp.com/dashboard"
+                        : "http://localhost:5173/dashboard"
+                );
+            });
         });
     },
 
@@ -53,8 +66,10 @@ const authController = {
                 accessToken: req.user.accessToken,
             });
         } catch (error) {
+            console.error("Error fetching user info:", error);
             res.status(500).json({
                 error: "Failed to fetch user information",
+                details: error.message,
             });
         }
     },

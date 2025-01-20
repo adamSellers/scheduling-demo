@@ -50,16 +50,23 @@ class AuthService {
                 hasInstanceUrl: !!user?.instanceUrl,
                 instanceUrl: user?.instanceUrl,
             });
-            done(null, user);
+            // Explicitly serialize just what we need
+            const serialized = {
+                accessToken: user.accessToken,
+                refreshToken: user.refreshToken,
+                instanceUrl: user.instanceUrl,
+            };
+            done(null, serialized);
         });
 
-        passport.deserializeUser((user, done) => {
+        passport.deserializeUser((serialized, done) => {
             console.log("Deserializing user:", {
-                hasAccessToken: !!user?.accessToken,
-                hasInstanceUrl: !!user?.instanceUrl,
-                instanceUrl: user?.instanceUrl,
+                hasAccessToken: !!serialized?.accessToken,
+                hasInstanceUrl: !!serialized?.instanceUrl,
+                instanceUrl: serialized?.instanceUrl,
             });
-            done(null, user);
+            // Return the user object as is
+            done(null, serialized);
         });
     }
 }
