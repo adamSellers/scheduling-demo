@@ -3,8 +3,10 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const session = require("express-session");
+const { createClient } = require("@redis/client");
+const { RedisStore } = require("connect-redis");
 const AuthService = require("./services/auth.service");
-const PassportConfig = require("./config/passport.config");
 const CorsConfig = require("./config/cors.config");
 require("dotenv").config();
 
@@ -27,17 +29,52 @@ app.use(cookieParser());
 // CORS configuration must be before session
 CorsConfig.initialize(app);
 
-// Initialize PassportConfig (which sets up session and passport) before routes
-try {
-    PassportConfig.initialize(app);
-    AuthService.initializePassport();
-    console.log("Passport and Redis initialized successfully");
-} catch (error) {
-    console.error("Failed to initialize Passport or Redis:", error);
-    if (process.env.NODE_ENV === "production") {
-        process.exit(1);
-    }
-}
+// Redis setup
+const redisClient = createClient({
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+    socket: {
+        tls: process.env.NODE_ENV === "production",
+        rejectUnauthorized: false,
+    },
+});
+
+redisClient.on("error", (err) => {
+    console.error("Redis Client Error:", err);
+});
+
+redisClient.on("connect", () => {
+    console.log("Connected to Redis successfully");
+});
+
+redisClient.connect().catch(console.error);
+
+// Session configuration
+const redisStore = new RedisStore({
+    client: redisClient,
+    prefix: "myapp:",
+});
+
+app.use(
+    session({
+        store: redisStore,
+        secret: process.env.SESSION_SECRET || "your-secret-key",
+        name: "sessionId",
+        resave: false,
+        saveUninitialized: false,
+        proxy: true,
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
+            httpOnly: true,
+        },
+    })
+);
+
+// Initialize passport
+AuthService.initializePassport();
+app.use(require("passport").initialize());
+app.use(require("passport").session());
 
 // Static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -49,7 +86,8 @@ app.use((req, res, next) => {
         path: req.path,
         query: req.query,
         body: req.body,
-        session: req.session ? "exists" : "missing", // Debug session
+        session: req.session ? "exists" : "missing",
+        sessionID: req.sessionID,
     });
     next();
 });
@@ -80,14 +118,15 @@ app.use(function (req, res, next) {
 // error handler
 app.use(function (err, req, res, next) {
     console.error("Error:", err);
-
-    // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
-
-    // render the error page
     res.status(err.status || 500);
     res.render("error");
+});
+
+// Cleanup on app shutdown
+process.on("SIGTERM", () => {
+    redisClient.quit();
 });
 
 module.exports = app;
