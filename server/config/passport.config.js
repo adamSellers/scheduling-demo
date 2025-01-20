@@ -1,7 +1,7 @@
-import session from "express-session";
-import passport from "passport";
-import { createClient } from "@redis/client";
-import { default as RedisStore } from "connect-redis";
+const session = require("express-session");
+const passport = require("passport");
+const { createClient } = require("@redis/client");
+const { RedisStore } = require("connect-redis");
 
 class PassportConfig {
     static async initialize(app) {
@@ -43,7 +43,8 @@ class PassportConfig {
         // Initialize Redis store
         const redisStore = new RedisStore({
             client: redisClient,
-            prefix: "sess:",
+            prefix: "myapp:",
+            ttl: 86400, // 1 day in seconds
         });
 
         app.use(
@@ -82,4 +83,4 @@ class PassportConfig {
     }
 }
 
-export default PassportConfig;
+module.exports = PassportConfig;
