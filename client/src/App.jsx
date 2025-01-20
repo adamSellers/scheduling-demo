@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -9,19 +9,41 @@ import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import AppointmentFlow from './components/AppointmentFlow/AppointmentFlow';
 import Customers from './components/Customers/Customers';
+import Profile from './components/Profile/Profile';
+import ApiService from './services/api.service';
 
-// Auth check function
-const isAuthenticated = () => {
-  // In a real app, you'd check for a valid session/token
-  // For now, we'll just check if we're not on the login page
-  return window.location.pathname !== '/';
-};
+// Auth check component
+const AuthWrapper = ({ children }) => {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-// Protected Route wrapper
-const ProtectedRoute = ({ children }) => {
-  if (!isAuthenticated()) {
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Try to fetch user info to verify authentication
+        await ApiService.profile.getUserInfo();
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.log('Authentication check failed:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Show nothing while checking authentication
+  if (!authChecked) {
+    return null;
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
   return children;
 };
 
@@ -31,40 +53,48 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
-          {/* Public route */}
+          {/* Public route - Login */}
           <Route path="/" element={<Login />} />
           
           {/* Protected routes */}
           <Route 
             path="/dashboard" 
             element={
-              <ProtectedRoute>
+              <AuthWrapper>
                 <Dashboard />
-              </ProtectedRoute>
+              </AuthWrapper>
             } 
           />
           <Route 
             path="/appointments" 
             element={
-              <ProtectedRoute>
+              <AuthWrapper>
                 <AppointmentFlow />
-              </ProtectedRoute>
+              </AuthWrapper>
             } 
           />
           <Route 
             path="/customers" 
             element={
-              <ProtectedRoute>
+              <AuthWrapper>
                 <Customers />
-              </ProtectedRoute>
+              </AuthWrapper>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <AuthWrapper>
+                <Profile />
+              </AuthWrapper>
             } 
           />
 
           {/* Catch all unauthorized route */}
           <Route path="*" element={
-            <ProtectedRoute>
+            <AuthWrapper>
               <Navigate to="/dashboard" replace />
-            </ProtectedRoute>
+            </AuthWrapper>
           } />
         </Routes>
       </Router>
