@@ -52,7 +52,7 @@ app.use(function (req, res, next) {
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "client/dist")));
+    app.use(express.static(path.join(__dirname, "client/dist", "index.html")));
 } else {
     app.use(express.static(path.join(__dirname, "public")));
 }
