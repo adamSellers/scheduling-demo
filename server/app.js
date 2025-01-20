@@ -18,27 +18,28 @@ const app = express();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
+// Basic middleware
 app.use(logger("dev"));
-CorsConfig.initialize(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Initialize Passport with Redis (async)
-(async () => {
-    try {
-        await PassportConfig.initialize(app);
-        AuthService.initializePassport();
-        console.log("Passport and Redis initialized successfully");
-    } catch (error) {
-        console.error("Failed to initialize Passport or Redis:", error);
-        // Handle initialization failure
-        if (process.env.NODE_ENV === "production") {
-            process.exit(1);
-        }
-    }
-})();
-
 app.use(cookieParser());
+
+// CORS configuration must be before session
+CorsConfig.initialize(app);
+
+// Initialize PassportConfig (which sets up session and passport) before routes
+try {
+    PassportConfig.initialize(app);
+    AuthService.initializePassport();
+    console.log("Passport and Redis initialized successfully");
+} catch (error) {
+    console.error("Failed to initialize Passport or Redis:", error);
+    if (process.env.NODE_ENV === "production") {
+        process.exit(1);
+    }
+}
+
+// Static files
 app.use(express.static(path.join(__dirname, "public")));
 
 // Debug middleware to log all requests
@@ -48,6 +49,7 @@ app.use((req, res, next) => {
         path: req.path,
         query: req.query,
         body: req.body,
+        session: req.session ? "exists" : "missing", // Debug session
     });
     next();
 });
