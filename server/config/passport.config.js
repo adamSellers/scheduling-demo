@@ -1,10 +1,13 @@
 const session = require("express-session");
 const passport = require("passport");
-const RedisStore = require("connect-redis").default;
+const connectRedis = require("connect-redis");
 const { createClient } = require("@redis/client");
 
 class PassportConfig {
     static async initialize(app) {
+        // Create Redis Store
+        const RedisStore = connectRedis(session);
+
         // Initialize Redis client with SSL configuration
         const redisClient = createClient({
             url: process.env.REDIS_URL || "redis://localhost:6379",
