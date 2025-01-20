@@ -39,6 +39,8 @@ server
     ├── index.pug
     └── layout.pug
 client
+├── .env
+├── .env.development
 ├── .gitignore
 ├── README.md
 ├── eslint.config.js

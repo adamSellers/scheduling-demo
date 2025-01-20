@@ -47,9 +47,16 @@ app.use("/api/customers", customerRoutes);
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
-    app.use(
-        express.static(path.join(__dirname, "../client/dist", "index.html"))
-    );
+    // Serve any static files from the React app build directory
+    app.use(express.static(path.join(__dirname, "../client/dist")));
+
+    // Handle client-side routing - send all other requests to index.html
+    app.get("*", (req, res) => {
+        // Skip API routes
+        if (!req.url.startsWith("/api") && !req.url.startsWith("/auth")) {
+            res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
+        }
+    });
 } else {
     app.use(express.static(path.join(__dirname, "public")));
 }
