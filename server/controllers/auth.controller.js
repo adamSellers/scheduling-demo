@@ -25,7 +25,11 @@ const authController = {
     logout: (req, res, next) => {
         req.logout((err) => {
             if (err) return next(err);
-            res.redirect("http://localhost:5173/");
+            const redirectUrl =
+                process.env.NODE_ENV === "production"
+                    ? "https://china-scheduler-demo-674493312f03.herokuapp.com/"
+                    : "http://localhost:5173/";
+            res.redirect(redirectUrl);
         });
     },
 

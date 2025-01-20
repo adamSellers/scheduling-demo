@@ -40,7 +40,7 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
   };
 
   const handleLogout = () => {
-    const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : '';
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : 'https://china-scheduler-demo-674493312f03.herokuapp.com';
     window.location.href = `${baseUrl}/auth/logout`;
   };
 
