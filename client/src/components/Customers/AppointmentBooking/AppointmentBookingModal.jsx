@@ -51,7 +51,6 @@ const AppointmentBookingModal = ({
   const [timeSlots, setTimeSlots] = useState([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
-  // Monitor customer prop for debugging
   useEffect(() => {
     console.log('Customer prop in modal:', customer);
   }, [customer]);
@@ -88,8 +87,13 @@ const AppointmentBookingModal = ({
       const requestParams = {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        workTypeId: selectedWorkType.id, // Using actual WorkType ID now
-        territoryIds: [territory.id]
+        workType: {  
+          id: selectedWorkType.id
+        },
+        territoryIds: [territory.id],
+        schedulingPolicyId: null,
+        accountId: null,
+        allowConcurrentScheduling: false
       };
 
       console.log('Fetching appointment candidates with params:', requestParams);
@@ -131,7 +135,6 @@ const AppointmentBookingModal = ({
       setSubmitting(true);
       setError(null);
       
-      // Detailed validation with logging
       const missingFields = [];
       
       console.log('Validating appointment data:', {
@@ -160,27 +163,12 @@ const AppointmentBookingModal = ({
           parentRecordId: customer.id,
           workTypeId: selectedWorkType.id,
           serviceTerritoryId: selectedTerritory.id,
-          schedStartTime: selectedTimeSlot.startTime,
-          schedEndTime: selectedTimeSlot.endTime,
+          schedStartTime: selectedTimeSlot.startTime,  // Already in correct format from getCandidates
+          schedEndTime: selectedTimeSlot.endTime,      // Already in correct format from getCandidates
           appointmentType: "In Person",
-          appointmentMode: "Regular",
           description: `Luxury client appointment with ${customer.name}`,
-          // Include address if available from territory
-          ...(selectedTerritory.address && {
-            street: selectedTerritory.address.split(',')[0]?.trim(),
-            city: selectedTerritory.address.split(',')[1]?.trim(),
-            state: selectedTerritory.address.split(',')[2]?.trim(),
-          }),
-          extendedFields: [
-            {
-              name: "Email",
-              value: customer.email || ''
-            },
-            {
-              name: "Phone",
-              value: customer.phone || ''
-            }
-          ]
+          street: selectedTerritory.address?.split(',')[0]?.trim() || '',
+          city: selectedTerritory.address?.split(',')[1]?.trim() || ''
         },
         assignedResources: [
           {
