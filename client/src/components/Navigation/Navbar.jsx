@@ -40,7 +40,7 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
   };
 
   const handleLogout = () => {
-    const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : 'https://china-scheduler-demo-674493312f03.herokuapp.com';
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : '';
     window.location.href = `${baseUrl}/auth/logout`;
   };
 
@@ -80,9 +80,16 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              Salesforce Integration
+            <Typography 
+              variant="h6" 
+              component="div" 
+              sx={{ 
+                pl: { sm: 0 }  // No left padding on mobile, aligned on desktop
+              }}
+            >
+              NTO Scheduling
             </Typography>
+            <Box sx={{ flexGrow: 1 }} />
             <IconButton color="inherit" onClick={onRefresh} sx={{ mr: 2 }}>
               <RefreshIcon />
             </IconButton>

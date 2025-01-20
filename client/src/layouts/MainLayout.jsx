@@ -27,10 +27,20 @@ const MainLayout = ({ children }) => {
           backgroundColor: 'background.default',
           minHeight: '100vh',
           pt: '64px', // AppBar height
-          width: { sm: `calc(100% - ${drawerWidth}px)` }
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          display: 'flex',
+          justifyContent: 'center'
         }}
       >
-        {children}
+        <Box
+          sx={{
+            maxWidth: '1200px',
+            width: '100%',
+            px: 3, // Horizontal padding
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );
