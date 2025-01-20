@@ -6,7 +6,10 @@
         "client": "cd client && npm run dev",
         "server": "cd server && npm run start",
         "dev": "concurrently \"npm run server\" \"npm run client\"",
-        "install-all": "npm install && cd client && npm install && cd ../server && npm install"
+        "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+        "install-server": "cd server && npm install",
+        "install-client": "cd client && npm install",
+        "heroku-postbuild": "npm run install-server && npm run install-client && cd client && npx vite build"
     },
     "author": "",
     "license": "ISC",
