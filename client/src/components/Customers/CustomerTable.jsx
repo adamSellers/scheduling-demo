@@ -53,9 +53,9 @@ const CustomerTable = ({
     },
     { 
       id: 'phone', 
-      label: 'Phone',
+      label: 'Mobile Phone',
       format: (value) => {
-        if (value === 'No Phone') return '—';
+        if (value === 'No Mobile Phone') return '—';
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <PhoneIcon fontSize="small" color="action" />

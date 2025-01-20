@@ -8,7 +8,7 @@ class CustomerService {
 
         try {
             const query = encodeURIComponent(
-                `SELECT Id, Name, PersonEmail, Phone, IsPersonAccount 
+                `SELECT Id, Name, PersonEmail, PersonMobilePhone, IsPersonAccount 
                  FROM Account 
                  WHERE IsPersonAccount = true 
                  ORDER BY Name ASC 
@@ -28,7 +28,7 @@ class CustomerService {
                 id: account.Id,
                 name: account.Name || "No Name",
                 email: account.PersonEmail || "No Email",
-                phone: account.Phone || "No Phone",
+                phone: account.PersonMobilePhone || "No Mobile Phone",
                 customerStatus: "Active", // We can enhance this later with real status logic
             }));
         } catch (error) {
@@ -49,12 +49,12 @@ class CustomerService {
 
         try {
             const query = encodeURIComponent(
-                `SELECT Id, Name, PersonEmail, Phone 
-                 FROM Account 
-                 WHERE IsPersonAccount = true 
-                 AND Name LIKE '%${searchQuery}%' 
-                 ORDER BY Name ASC 
-                 LIMIT 100`
+                `SELECT Id, Name, PersonEmail, PersonMobilePhone 
+                    FROM Account 
+                    WHERE IsPersonAccount = true 
+                    AND Name LIKE '%${searchQuery}%' 
+                    ORDER BY Name ASC 
+                    LIMIT 100`
             );
 
             const response = await axios({
@@ -71,7 +71,7 @@ class CustomerService {
                 salesforceId: account.Id, // Explicitly include Salesforce ID
                 name: account.Name || "No Name",
                 email: account.PersonEmail || "No Email",
-                phone: account.Phone || "No Phone",
+                phone: account.PersonMobilePhone || "No Mobile Phone",
             }));
         } catch (error) {
             console.error("Error in searchPersonAccounts:", error);
