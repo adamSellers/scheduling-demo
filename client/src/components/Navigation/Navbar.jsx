@@ -40,12 +40,14 @@ const Navbar = ({ onDrawerToggle, onRefresh }) => {
   };
 
   const handleLogout = () => {
-    window.location.href = 'http://localhost:3000/auth/logout';
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : '';
+    window.location.href = `${baseUrl}/auth/logout`;
   };
 
   const handleCopyToken = async () => {
     try {
-      const response = await fetch('http://localhost:3000/auth/user-info', {
+      const baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : '';
+      const response = await fetch(`${baseUrl}/auth/user-info`, {
         credentials: 'include'
       });
       const data = await response.json();

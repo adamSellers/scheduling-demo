@@ -8,10 +8,11 @@ import {
   Box 
 } from '@mui/material';
 import { SalesforceIcon } from '../Icons/SalesforceIcon';
+import ApiService from '../../services/api.service';
 
 const Login = () => {
   const handleSalesforceLogin = () => {
-    window.location.href = 'http://localhost:3000/auth/salesforce';
+    ApiService.auth.login();
   };
 
   return (

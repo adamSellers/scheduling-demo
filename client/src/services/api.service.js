@@ -1,7 +1,7 @@
 import axios from "axios";
 
 class ApiService {
-    static baseURL = "http://localhost:3000";
+    static baseURL = import.meta.env.DEV ? "http://localhost:3000" : "";
 
     static async makeRequest(endpoint, method = "GET", data = null) {
         try {

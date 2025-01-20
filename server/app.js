@@ -50,6 +50,13 @@ app.use(function (req, res, next) {
     next(createError(404));
 });
 
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "client/dist")));
+} else {
+    app.use(express.static(path.join(__dirname, "public")));
+}
+
 // error handler
 app.use(function (err, req, res, next) {
     console.error("Error:", err);

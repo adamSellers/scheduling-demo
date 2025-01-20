@@ -14,7 +14,11 @@ const authController = {
             session: true,
         })(req, res, (err) => {
             if (err) return next(err);
-            res.redirect("http://localhost:5173/dashboard");
+            res.redirect(
+                process.env.NODE_ENV === "production"
+                    ? "https://china-scheduler-demo-674493312f03.herokuapp.com/dashboard"
+                    : "http://localhost:5173/dashboard"
+            );
         });
     },
 

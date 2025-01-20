@@ -12,7 +12,9 @@ class AuthService {
                     clientID: process.env.SF_CLIENT_ID,
                     clientSecret: process.env.SF_CLIENT_SECRET,
                     callbackURL:
-                        "http://localhost:3000/auth/salesforce/callback",
+                        process.env.NODE_ENV === "production"
+                            ? "https://china-scheduler-demo-674493312f03.herokuapp.com/auth/salesforce/callback"
+                            : "http://localhost:3000/auth/salesforce/callback",
                 },
                 function (accessToken, refreshToken, params, profile, cb) {
                     console.log("OAuth callback received:", {
