@@ -77,6 +77,7 @@ client
 │   │   ├── Login
 │   │   │   └── Login.jsx
 │   │   ├── Navigation
+│   │   │   ├── Footer.jsx
 │   │   │   ├── Navbar.jsx
 │   │   │   └── Sidebar.jsx
 │   │   └── Profile

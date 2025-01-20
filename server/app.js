@@ -8,7 +8,6 @@ const PassportConfig = require("./config/passport.config");
 const CorsConfig = require("./config/cors.config");
 require("dotenv").config();
 
-// const indexRouter = require("./routes/index");
 const authRoutes = require("./routes/auth.routes");
 const schedulerRoutes = require("./routes/scheduler.routes");
 const customerRoutes = require("./routes/customer.routes");
@@ -23,8 +22,22 @@ app.use(logger("dev"));
 CorsConfig.initialize(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-PassportConfig.initialize(app);
-AuthService.initializePassport();
+
+// Initialize Passport with Redis (async)
+(async () => {
+    try {
+        await PassportConfig.initialize(app);
+        AuthService.initializePassport();
+        console.log("Passport and Redis initialized successfully");
+    } catch (error) {
+        console.error("Failed to initialize Passport or Redis:", error);
+        // Handle initialization failure
+        if (process.env.NODE_ENV === "production") {
+            process.exit(1);
+        }
+    }
+})();
+
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -40,19 +53,15 @@ app.use((req, res, next) => {
 });
 
 // Route definitions
-// app.use("/", indexRouter);
 app.use("/auth", authRoutes);
 app.use("/api/scheduler", schedulerRoutes);
 app.use("/api/customers", customerRoutes);
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
-    // Serve any static files from the React app build directory
     app.use(express.static(path.join(__dirname, "../client/dist")));
 
-    // Handle client-side routing - send all other requests to index.html
     app.get("*", (req, res) => {
-        // Skip API routes
         if (!req.url.startsWith("/api") && !req.url.startsWith("/auth")) {
             res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
         }

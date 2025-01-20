@@ -1,10 +1,58 @@
 const session = require("express-session");
 const passport = require("passport");
+const RedisStore = require("connect-redis").default;
+const { createClient } = require("@redis/client");
 
 class PassportConfig {
-    static initialize(app) {
+    static async initialize(app) {
+        // Initialize Redis client
+        const redisClient = createClient({
+            url: process.env.REDIS_URL || "redis://localhost:6379",
+            legacyMode: false,
+        });
+
+        // Redis error handling
+        redisClient.on("error", (err) => {
+            console.error("Redis Client Error:", err);
+            // You might want to implement some fallback mechanism here
+            if (process.env.NODE_ENV === "production") {
+                // Notify your error tracking service (e.g., Sentry)
+                console.error("Production Redis error:", err);
+            }
+        });
+
+        redisClient.on("connect", () => {
+            console.log("Connected to Redis successfully");
+        });
+
+        redisClient.on("reconnecting", () => {
+            console.log("Redis client reconnecting...");
+        });
+
+        redisClient.on("ready", () => {
+            console.log("Redis client ready");
+        });
+
+        // Connect to Redis
+        try {
+            await redisClient.connect();
+        } catch (error) {
+            console.error("Failed to connect to Redis:", error);
+            // In production, you might want to exit the process or implement a fallback
+            if (process.env.NODE_ENV === "production") {
+                process.exit(1);
+            }
+        }
+
+        // Initialize Redis store
+        const redisStore = new RedisStore({
+            client: redisClient,
+            prefix: "session:",
+        });
+
         app.use(
             session({
+                store: redisStore,
                 secret: process.env.SESSION_SECRET || "your-secret-key",
                 resave: false,
                 saveUninitialized: false,
@@ -20,6 +68,20 @@ class PassportConfig {
         );
         app.use(passport.initialize());
         app.use(passport.session());
+
+        // Cleanup function for graceful shutdown
+        const cleanup = async () => {
+            try {
+                await redisClient.quit();
+                console.log("Redis connection closed.");
+            } catch (err) {
+                console.error("Error closing Redis connection:", err);
+            }
+        };
+
+        // Handle application shutdown
+        process.on("SIGTERM", cleanup);
+        process.on("SIGINT", cleanup);
     }
 }
 
