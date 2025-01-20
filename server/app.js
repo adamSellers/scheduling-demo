@@ -45,11 +45,6 @@ app.use("/auth", authRoutes);
 app.use("/api/scheduler", schedulerRoutes);
 app.use("/api/customers", customerRoutes);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
-});
-
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === "production") {
     app.use(
@@ -58,6 +53,11 @@ if (process.env.NODE_ENV === "production") {
 } else {
     app.use(express.static(path.join(__dirname, "public")));
 }
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    next(createError(404));
+});
 
 // error handler
 app.use(function (err, req, res, next) {
