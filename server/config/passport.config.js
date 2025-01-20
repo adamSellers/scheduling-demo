@@ -1,13 +1,10 @@
 const session = require("express-session");
 const passport = require("passport");
-const connectRedis = require("connect-redis");
+const RedisStore = require("connect-redis").default;
 const { createClient } = require("@redis/client");
 
 class PassportConfig {
     static async initialize(app) {
-        // Create Redis Store
-        const RedisStore = connectRedis(session);
-
         // Initialize Redis client with SSL configuration
         const redisClient = createClient({
             url: process.env.REDIS_URL || "redis://localhost:6379",
@@ -42,16 +39,16 @@ class PassportConfig {
             await redisClient.connect();
         } catch (error) {
             console.error("Failed to connect to Redis:", error);
-            // In production, you might want to exit the process or implement a fallback
             if (process.env.NODE_ENV === "production") {
+                console.error("Full Redis connection error:", error);
                 process.exit(1);
             }
         }
 
-        // Initialize Redis store
+        // Initialize Redis store with connected client
         const redisStore = new RedisStore({
             client: redisClient,
-            prefix: "session:",
+            prefix: "sess:",
         });
 
         app.use(
@@ -86,6 +83,8 @@ class PassportConfig {
         // Handle application shutdown
         process.on("SIGTERM", cleanup);
         process.on("SIGINT", cleanup);
+
+        return redisClient; // Return client for potential external use
     }
 }
 
