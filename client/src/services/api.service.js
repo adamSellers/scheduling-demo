@@ -3,7 +3,12 @@ import axios from "axios";
 class ApiService {
     static baseURL = import.meta.env.DEV ? "http://localhost:3000" : "";
 
-    static async makeRequest(endpoint, method = "GET", data = null) {
+    static async makeRequest(
+        endpoint,
+        method = "GET",
+        data = null,
+        options = {}
+    ) {
         try {
             const config = {
                 method,
@@ -12,6 +17,7 @@ class ApiService {
                     "Content-Type": "application/json",
                 },
                 withCredentials: true,
+                ...options, // This allows passing additional axios config options
             };
 
             if (data && (method === "POST" || method === "PUT")) {
@@ -20,9 +26,12 @@ class ApiService {
 
             console.log(`Making ${method} request to ${endpoint}:`, { config });
             const response = await axios(config);
-            console.log(`Response from ${endpoint}:`, response.data);
+            console.log(
+                `Response from ${endpoint}:`,
+                options.responseType === "blob" ? "Blob data" : response.data
+            );
 
-            return response.data;
+            return response; // Return full response to handle different response types
         } catch (error) {
             console.error(`Error in ${method} request to ${endpoint}:`, {
                 message: error.message,
@@ -89,10 +98,10 @@ class ApiService {
         getCustomerPhoto: async (personAccountId) => {
             try {
                 const response = await ApiService.makeRequest(
-                    `/customers/photo/${personAccountId}`,
-                    {
-                        responseType: "blob",
-                    }
+                    `/api/customers/photo/${personAccountId}`,
+                    "GET",
+                    null,
+                    { responseType: "blob" }
                 );
                 return URL.createObjectURL(response.data);
             } catch (error) {
