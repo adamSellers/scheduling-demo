@@ -88,11 +88,17 @@ const customerController = {
                 });
             }
 
+            console.log("Starting photo fetch for account:", personAccountId);
+
             // First get the PersonContactId from the Account
             const contactQuery = `${instanceUrl}/services/data/v59.0/query/?q=${encodeURIComponent(
                 `SELECT PersonContactId FROM Account WHERE Id = '${personAccountId}'`
             )}`;
 
+            console.log(
+                "Making contact query:",
+                decodeURIComponent(contactQuery)
+            );
             const contactResponse = await axios({
                 method: "get",
                 url: contactQuery,
@@ -101,6 +107,8 @@ const customerController = {
                     "Content-Type": "application/json",
                 },
             });
+
+            console.log("Contact query response:", contactResponse.data);
 
             if (
                 !contactResponse.data.records ||
@@ -113,12 +121,14 @@ const customerController = {
 
             const personContactId =
                 contactResponse.data.records[0].PersonContactId;
+            console.log("Found PersonContactId:", personContactId);
 
             // Then query for the User record associated with this Contact
             const userQuery = `${instanceUrl}/services/data/v59.0/query/?q=${encodeURIComponent(
                 `SELECT Id, SmallPhotoUrl, FullPhotoUrl FROM User WHERE ContactId = '${personContactId}'`
             )}`;
 
+            console.log("Making user query:", decodeURIComponent(userQuery));
             const userResponse = await axios({
                 method: "get",
                 url: userQuery,
@@ -127,6 +137,8 @@ const customerController = {
                     "Content-Type": "application/json",
                 },
             });
+
+            console.log("User query response:", userResponse.data);
 
             if (
                 !userResponse.data.records ||
@@ -142,6 +154,7 @@ const customerController = {
             // If we have a photo URL, fetch it
             if (user.FullPhotoUrl || user.SmallPhotoUrl) {
                 const photoUrl = user.FullPhotoUrl || user.SmallPhotoUrl;
+                console.log("Found photo URL:", photoUrl);
 
                 const photoResponse = await axios({
                     method: "get",
@@ -152,17 +165,21 @@ const customerController = {
                     responseType: "arraybuffer",
                 });
 
+                console.log("Photo response headers:", photoResponse.headers);
+
+                // Set the correct content type from the response
                 res.set("Content-Type", photoResponse.headers["content-type"]);
                 return res.send(photoResponse.data);
             }
 
-            // No photo found
-            res.status(404).json({ error: "No photo found for this user" });
+            return res
+                .status(404)
+                .json({ error: "No photo found for this user" });
         } catch (error) {
             console.error("Error fetching customer photo:", error);
             console.error("Error details:", error.response?.data);
             res.status(error.response?.status || 500).json({
-                error: "Failed to fetch customer photo",
+                error: "Failed to fetch user photo",
                 details: error.message,
             });
         }
