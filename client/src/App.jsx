@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import AppointmentFlow from './components/AppointmentFlow/AppointmentFlow';
 import Customers from './components/Customers/Customers';
 import Profile from './components/Profile/Profile';
+import CustomerDetail from './components/Customers/CustomerDetail';
 import ApiService from './services/api.service';
 
 // Auth check component
@@ -80,6 +81,14 @@ function App() {
                 <Customers />
               </AuthWrapper>
             } 
+          />
+          <Route
+            path="/customers/:id"
+            element={
+              <AuthWrapper>
+                <CustomerDetail />
+              </AuthWrapper>
+            }
           />
           <Route 
             path="/profile" 

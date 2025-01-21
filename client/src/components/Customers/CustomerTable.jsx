@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Button,
   Chip,
   CircularProgress,
+  Link
 } from '@mui/material';
 import {
   Event as EventIcon,
@@ -23,7 +25,19 @@ const CustomerTable = ({
       label: 'Customer Name',
       format: (value, row) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <span>{value === 'No Name' ? '—' : value}</span>
+          <Link
+            component={RouterLink}
+            to={`/customers/${row.id}`}
+            sx={{ 
+              textDecoration: 'none',
+              color: 'primary.main',
+              '&:hover': {
+                textDecoration: 'underline'
+              }
+            }}
+          >
+            {value === 'No Name' ? '—' : value}
+          </Link>
           <Button
             size="small"
             variant="outlined"
