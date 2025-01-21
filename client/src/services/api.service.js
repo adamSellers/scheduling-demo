@@ -3,12 +3,7 @@ import axios from "axios";
 class ApiService {
     static baseURL = import.meta.env.DEV ? "http://localhost:3000" : "";
 
-    static async makeRequest(
-        endpoint,
-        method = "GET",
-        data = null,
-        options = {}
-    ) {
+    static async makeRequest(endpoint, method = "GET", data = null) {
         try {
             const config = {
                 method,
@@ -17,7 +12,6 @@ class ApiService {
                     "Content-Type": "application/json",
                 },
                 withCredentials: true,
-                ...options, // This allows passing additional axios config options
             };
 
             if (data && (method === "POST" || method === "PUT")) {
@@ -26,12 +20,9 @@ class ApiService {
 
             console.log(`Making ${method} request to ${endpoint}:`, { config });
             const response = await axios(config);
-            console.log(
-                `Response from ${endpoint}:`,
-                options.responseType === "blob" ? "Blob data" : response.data
-            );
+            console.log(`Response from ${endpoint}:`, response.data);
 
-            return response; // Return full response to handle different response types
+            return response.data;
         } catch (error) {
             console.error(`Error in ${method} request to ${endpoint}:`, {
                 message: error.message,
@@ -97,12 +88,12 @@ class ApiService {
         },
         getCustomerPhoto: async (personAccountId) => {
             try {
-                const response = await ApiService.makeRequest(
-                    `/api/customers/photo/${personAccountId}`,
-                    "GET",
-                    null,
-                    { responseType: "blob" }
-                );
+                const response = await axios({
+                    method: "GET",
+                    url: `${ApiService.baseURL}/api/customers/photo/${personAccountId}`,
+                    responseType: "blob",
+                    withCredentials: true,
+                });
                 return URL.createObjectURL(response.data);
             } catch (error) {
                 if (error.response?.status === 404) {
