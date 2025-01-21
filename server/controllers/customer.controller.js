@@ -161,17 +161,25 @@ const customerController = {
                     url: photoUrl,
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
                     },
                     responseType: "arraybuffer",
                 });
 
                 console.log("Photo response headers:", photoResponse.headers);
 
-                // Set the correct content type from the response
-                res.set("Content-Type", photoResponse.headers["content-type"]);
+                // Ensure proper caching headers
+                res.set({
+                    "Content-Type": photoResponse.headers["content-type"],
+                    "Cache-Control":
+                        "no-store, no-cache, must-revalidate, proxy-revalidate",
+                    Pragma: "no-cache",
+                    Expires: "0",
+                });
+
                 return res.send(photoResponse.data);
             }
-
             return res
                 .status(404)
                 .json({ error: "No photo found for this user" });

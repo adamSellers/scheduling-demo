@@ -93,13 +93,23 @@ class ApiService {
                     url: `${ApiService.baseURL}/api/customers/photo/${personAccountId}`,
                     responseType: "blob",
                     withCredentials: true,
+                    headers: {
+                        Accept: "image/png,image/jpeg,image/jpg",
+                        "Cache-Control": "no-cache",
+                        Pragma: "no-cache",
+                    },
                 });
-                return URL.createObjectURL(response.data);
-            } catch (error) {
-                if (error.response?.status === 404) {
-                    return null;
+
+                if (response.data) {
+                    const blob = new Blob([response.data], {
+                        type: response.headers["content-type"],
+                    });
+                    return URL.createObjectURL(blob);
                 }
-                throw error;
+                return null;
+            } catch (error) {
+                console.error("Error fetching customer photo:", error);
+                return null;
             }
         },
     };
