@@ -86,6 +86,22 @@ class ApiService {
                 )}`
             );
         },
+        getCustomerPhoto: async (personAccountId) => {
+            try {
+                const response = await ApiService.makeRequest(
+                    `/customers/photo/${personAccountId}`,
+                    {
+                        responseType: "blob",
+                    }
+                );
+                return URL.createObjectURL(response.data);
+            } catch (error) {
+                if (error.response?.status === 404) {
+                    return null;
+                }
+                throw error;
+            }
+        },
     };
 
     static profile = {

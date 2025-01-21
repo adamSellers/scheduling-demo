@@ -1,4 +1,5 @@
 const customerService = require("../services/customer.service");
+const axios = require("axios");
 
 const customerController = {
     getPersonAccounts: async (req, res) => {
@@ -67,6 +68,101 @@ const customerController = {
             console.error("Search error:", error);
             res.status(500).json({
                 error: "Error searching person accounts",
+                details: error.message,
+            });
+        }
+    },
+
+    getCustomerPhoto: async (req, res) => {
+        try {
+            const { personAccountId } = req.params;
+            const { accessToken, instanceUrl } = req.user;
+
+            if (!instanceUrl) {
+                console.error(
+                    "No instance_url found in user session",
+                    req.user
+                );
+                return res.status(500).json({
+                    error: "Salesforce instance URL not found.",
+                });
+            }
+
+            // First get the PersonContactId from the Account
+            const contactQuery = `${instanceUrl}/services/data/v59.0/query/?q=${encodeURIComponent(
+                `SELECT PersonContactId FROM Account WHERE Id = '${personAccountId}'`
+            )}`;
+
+            const contactResponse = await axios({
+                method: "get",
+                url: contactQuery,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (
+                !contactResponse.data.records ||
+                contactResponse.data.records.length === 0
+            ) {
+                return res.status(404).json({
+                    error: "Person Account not found",
+                });
+            }
+
+            const personContactId =
+                contactResponse.data.records[0].PersonContactId;
+
+            // Then query for the User record associated with this Contact
+            const userQuery = `${instanceUrl}/services/data/v59.0/query/?q=${encodeURIComponent(
+                `SELECT Id, SmallPhotoUrl, FullPhotoUrl FROM User WHERE ContactId = '${personContactId}'`
+            )}`;
+
+            const userResponse = await axios({
+                method: "get",
+                url: userQuery,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (
+                !userResponse.data.records ||
+                userResponse.data.records.length === 0
+            ) {
+                return res.status(404).json({
+                    error: "No Experience Cloud user found for this contact",
+                });
+            }
+
+            const user = userResponse.data.records[0];
+
+            // If we have a photo URL, fetch it
+            if (user.FullPhotoUrl || user.SmallPhotoUrl) {
+                const photoUrl = user.FullPhotoUrl || user.SmallPhotoUrl;
+
+                const photoResponse = await axios({
+                    method: "get",
+                    url: photoUrl,
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                    responseType: "arraybuffer",
+                });
+
+                res.set("Content-Type", photoResponse.headers["content-type"]);
+                return res.send(photoResponse.data);
+            }
+
+            // No photo found
+            res.status(404).json({ error: "No photo found for this user" });
+        } catch (error) {
+            console.error("Error fetching customer photo:", error);
+            console.error("Error details:", error.response?.data);
+            res.status(error.response?.status || 500).json({
+                error: "Failed to fetch customer photo",
                 details: error.message,
             });
         }

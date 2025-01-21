@@ -12,4 +12,7 @@ router.get("/person-accounts", customerController.getPersonAccounts);
 // Search person accounts
 router.get("/person-accounts/search", customerController.searchPersonAccounts);
 
+// Get customer photo
+router.get("/photo/:personAccountId", customerController.getCustomerPhoto);
+
 module.exports = router;
