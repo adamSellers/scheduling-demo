@@ -5,7 +5,8 @@ import {
   Paper,
   Typography,
   Box,
-  Grid2 as Grid,
+  Grid,
+  Divider,
   Button,
   Avatar,
   CircularProgress,
@@ -34,10 +35,13 @@ import ApiService from '../../services/api.service';
 const CustomerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // State management
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [customerData, setCustomerData] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [photoUrl, setPhotoUrl] = useState(null);
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -52,6 +56,17 @@ const CustomerDetail = () => {
         }
         
         setCustomerData(customer);
+
+        // Try to fetch the customer's photo
+        try {
+          const photo = await ApiService.customers.getCustomerPhoto(customer.id);
+          if (photo) {
+            setPhotoUrl(photo);
+          }
+        } catch (error) {
+          console.error('Error fetching customer photo:', error);
+          // Don't set error state as this is not critical
+        }
 
         // Get all appointments and filter for this customer
         const allAppointments = await ApiService.scheduler.getAppointments();
@@ -71,6 +86,7 @@ const CustomerDetail = () => {
     fetchCustomerData();
   }, [id]);
 
+  // Loading state
   if (loading) {
     return (
       <MainLayout>
@@ -81,6 +97,7 @@ const CustomerDetail = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <MainLayout>
@@ -91,6 +108,7 @@ const CustomerDetail = () => {
     );
   }
 
+  // Not found state
   if (!customerData) {
     return (
       <MainLayout>
@@ -118,12 +136,15 @@ const CustomerDetail = () => {
             <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Avatar
+                  src={photoUrl}
                   sx={{
                     width: 120,
                     height: 120,
                     mb: 2,
                     bgcolor: 'primary.main',
-                    fontSize: '3rem'
+                    fontSize: '3rem',
+                    border: photoUrl ? '2px solid' : 'none',
+                    borderColor: 'primary.main'
                   }}
                 >
                   {customerData.name?.charAt(0)}
