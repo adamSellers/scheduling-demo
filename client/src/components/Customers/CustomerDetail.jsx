@@ -5,7 +5,7 @@ import {
   Paper,
   Typography,
   Box,
-  Grid,
+  Grid2 as Grid,
   Divider,
   Button,
   Avatar,
@@ -229,40 +229,74 @@ const CustomerDetail = () => {
             ) : (
               <TableContainer>
                 <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Appointment #</TableCell>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Time</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Location</TableCell>
-                      <TableCell>Service Type</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {appointments.map((appointment) => (
-                      <TableRow key={appointment.id}>
-                        <TableCell>{appointment.appointmentNumber}</TableCell>
-                        <TableCell>
-                          {new Date(appointment.scheduledStartTime).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(appointment.scheduledStartTime).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={appointment.status}
-                            color={appointment.status === 'Scheduled' ? 'success' : 'default'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{appointment.serviceTerritory}</TableCell>
-                        <TableCell>{appointment.workTypeName}</TableCell>
+                <TableHead>
+                      <TableRow>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Time</TableCell>
+                        <TableCell>Assigned Associate</TableCell>
+                        <TableCell>Location</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell align="right">Actions</TableCell>
                       </TableRow>
-                    ))}
+                    </TableHead>
+                    <TableBody>
+                      {appointments.map((appointment) => {
+                        const appointmentDate = new Date(appointment.scheduledStartTime);
+                        const address = [
+                          appointment.location?.street,
+                          appointment.location?.city,
+                          appointment.location?.state,
+                          appointment.location?.postalCode
+                        ].filter(Boolean).join(', ');
+
+                        return (
+                          <TableRow key={appointment.id}>
+                            <TableCell>
+                              {appointmentDate.toLocaleDateString(undefined, {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </TableCell>
+                            <TableCell>
+                              {appointmentDate.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </TableCell>
+                            <TableCell>
+                              {resources.find(r => r.id === appointment.assignedResourceId)?.name || 'Unassigned'}
+                            </TableCell>
+                            <TableCell>
+                              <Box>
+                                <Typography variant="body2">{appointment.serviceTerritory}</Typography>
+                                {address && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {address}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Chip 
+                                label={appointment.status}
+                                color={appointment.status === 'Scheduled' ? 'success' : 'default'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Button
+                                size="small"
+                                startIcon={<EditIcon />}
+                                onClick={() => console.log('Edit appointment:', appointment.id)}
+                              >
+                                Modify
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </TableContainer>
