@@ -145,10 +145,9 @@ SchedulerService.prototype.getServiceAppointments = function (
         "SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, " +
             "ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, " +
             "PostalCode, Description, WorkType.Name, WorkTypeId, " +
-            "AccountId, ParentRecordId, ParentRecordType, " +
-            "Account.Name, " +
-            "ServiceResource.Name, ServiceResource.Id, " +
-            "(SELECT ServiceResourceId, ServiceResource.Name FROM ServiceAppointmentResources) " +
+            "AccountId, Account.Name, " +
+            "(SELECT ServiceResourceId, ServiceResource.Name FROM AssignedResources " +
+            "WHERE ServiceResource.IsActive = true) " +
             "FROM ServiceAppointment " +
             "WHERE Status NOT IN ('Completed','Canceled') " +
             "ORDER BY SchedStartTime ASC"
@@ -174,7 +173,7 @@ SchedulerService.prototype.getServiceAppointments = function (
             return response.data.records.map(function (appointment) {
                 // Get the primary assigned resource if available
                 const assignedResource =
-                    appointment.ServiceAppointmentResources?.records?.[0];
+                    appointment.AssignedResources?.records?.[0];
 
                 return {
                     id: appointment.Id,
@@ -199,8 +198,6 @@ SchedulerService.prototype.getServiceAppointments = function (
 
                     // Customer relationship fields
                     accountId: appointment.AccountId,
-                    parentRecordId: appointment.ParentRecordId,
-                    parentRecordType: appointment.ParentRecordType,
                     accountName: appointment.Account?.Name,
 
                     // Service Resource fields
@@ -211,11 +208,9 @@ SchedulerService.prototype.getServiceAppointments = function (
 
                     // Raw data for debugging
                     _raw: {
-                        hasServiceResource: !!appointment.ServiceResource,
                         hasAccount: !!appointment.Account,
                         hasAssignedResources:
-                            appointment.ServiceAppointmentResources?.records
-                                ?.length > 0,
+                            appointment.AssignedResources?.records?.length > 0,
                     },
                 };
             });
