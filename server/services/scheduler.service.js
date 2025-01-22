@@ -226,6 +226,211 @@ SchedulerService.prototype.getServiceAppointments = function (
         });
 };
 
+//service to get service appointments that are assigned to customers
+SchedulerService.prototype.getCustomerAppointments = function (
+    accessToken,
+    instanceUrl,
+    accountId
+) {
+    if (!instanceUrl) {
+        return Promise.reject(
+            new Error("Instance URL is required for getCustomerAppointments")
+        );
+    }
+
+    if (!accountId) {
+        return Promise.reject(
+            new Error("AccountId is required for getCustomerAppointments")
+        );
+    }
+
+    var query = encodeURIComponent(
+        "SELECT Id, " +
+            "ServiceAppointment.AccountId, " +
+            "ServiceAppointment.AppointmentNumber, " +
+            "ServiceAppointment.SchedStartTime, " +
+            "ServiceAppointment.Status, " +
+            "ServiceAppointment.ServiceTerritoryId, " +
+            "ServiceAppointment.WorkType.Name, " +
+            "ServiceResource.Name " +
+            "FROM AssignedResource " +
+            "WHERE ServiceAppointment.AccountId = '" +
+            accountId +
+            "' " +
+            "ORDER BY ServiceAppointment.SchedStartTime ASC"
+    );
+
+    return axios({
+        method: "GET",
+        url: instanceUrl + "/services/data/v59.0/query/?q=" + query,
+        headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+        },
+    })
+        .then(function (response) {
+            return response.data.records.map(function (record) {
+                return {
+                    id: record.Id,
+                    appointmentNumber:
+                        record.ServiceAppointment.AppointmentNumber,
+                    scheduledStartTime:
+                        record.ServiceAppointment.SchedStartTime,
+                    status: record.ServiceAppointment.Status,
+                    serviceTerritoryId:
+                        record.ServiceAppointment.ServiceTerritoryId,
+                    workTypeName: record.ServiceAppointment.WorkType.Name,
+                    serviceResourceName: record.ServiceResource.Name,
+                };
+            });
+        })
+        .catch(function (error) {
+            console.error("Error in getCustomerAppointments:", error);
+            throw error;
+        });
+};
+SchedulerService.prototype.getCustomerAppointments = function (
+    accessToken,
+    instanceUrl,
+    accountId
+) {
+    if (!instanceUrl) {
+        return Promise.reject(
+            new Error("Instance URL is required for getCustomerAppointments")
+        );
+    }
+
+    if (!accountId) {
+        return Promise.reject(
+            new Error("AccountId is required for getCustomerAppointments")
+        );
+    }
+
+    var query = encodeURIComponent(
+        "SELECT Id, " +
+            "ServiceAppointment.AccountId, " +
+            "ServiceAppointment.AppointmentNumber, " +
+            "ServiceAppointment.SchedStartTime, " +
+            "ServiceAppointment.SchedEndTime, " +
+            "ServiceAppointment.Status, " +
+            "ServiceAppointment.ServiceTerritoryId, " +
+            "ServiceResource.Name " +
+            "FROM AssignedResource " +
+            "WHERE ServiceAppointment.AccountId = '" +
+            accountId +
+            "' " +
+            "AND ServiceAppointment.Status NOT IN ('Completed','Canceled') " +
+            "ORDER BY ServiceAppointment.SchedStartTime ASC"
+    );
+
+    console.log(
+        "Executing customer appointments query:",
+        decodeURIComponent(query)
+    );
+
+    return axios({
+        method: "GET",
+        url: instanceUrl + "/services/data/v59.0/query/?q=" + query,
+        headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+        },
+    })
+        .then(function (response) {
+            console.log("Customer appointments response:", {
+                totalSize: response.data.totalSize,
+                done: response.data.done,
+            });
+
+            return response.data.records.map(function (assignedResource) {
+                return {
+                    id: assignedResource.ServiceAppointment.Id,
+                    appointmentNumber:
+                        assignedResource.ServiceAppointment.AppointmentNumber,
+                    scheduledStartTime:
+                        assignedResource.ServiceAppointment.SchedStartTime,
+                    scheduledEndTime:
+                        assignedResource.ServiceAppointment.SchedEndTime,
+                    status: assignedResource.ServiceAppointment.Status,
+                    serviceTerritoryId:
+                        assignedResource.ServiceAppointment.ServiceTerritoryId,
+                    serviceResourceName: assignedResource.ServiceResource.Name,
+                };
+            });
+        })
+        .catch(function (error) {
+            console.error("Error in getCustomerAppointments:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                query: decodeURIComponent(query),
+            });
+            throw error;
+        });
+};
+const axios = require("axios");
+
+function SchedulerService() {}
+
+SchedulerService.prototype.makeApiRequest = function (
+    instanceUrl,
+    accessToken,
+    endpoint,
+    method,
+    params,
+    isSchedulingApi
+) {
+    method = method || "GET";
+    params = params || {};
+    isSchedulingApi = isSchedulingApi !== false;
+
+    if (!instanceUrl) {
+        throw new Error("Instance URL is required for API request");
+    }
+
+    var apiPath = isSchedulingApi ? "connect/scheduling" : "scheduling";
+    var url = instanceUrl + "/services/data/v59.0/" + apiPath + endpoint;
+
+    var config = {
+        method: method,
+        url: url,
+        headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+        },
+    };
+
+    if (method === "GET") {
+        config.params = params;
+    } else {
+        config.data = params;
+    }
+
+    console.log("Making scheduler API request:", {
+        url: config.url,
+        method: config.method,
+        params: config.params,
+        data: config.data,
+    });
+
+    return axios(config)
+        .then(function (response) {
+            console.log("Scheduler API response:", {
+                status: response.status,
+                data: response.data,
+            });
+            return response.data;
+        })
+        .catch(function (error) {
+            console.error("Error in makeApiRequest:", {
+                endpoint: endpoint,
+                error: error.message,
+                response: error.response && error.response.data,
+            });
+            throw error;
+        });
+};
+
 SchedulerService.prototype.getWorkGroupTypes = async function (
     accessToken,
     instanceUrl
