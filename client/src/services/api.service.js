@@ -3,6 +3,15 @@ import axios from "axios";
 class ApiService {
     static baseURL = import.meta.env.DEV ? "http://localhost:3000" : "";
 
+    static handleAuthError() {
+        // Clear any stored auth state if needed
+        // Redirect to login page, maintaining the base URL context
+        const loginPath = "/";
+        if (window.location.pathname !== loginPath) {
+            window.location.href = loginPath;
+        }
+    }
+
     static async makeRequest(endpoint, method = "GET", data = null) {
         try {
             const config = {
@@ -29,6 +38,13 @@ class ApiService {
                 response: error.response?.data,
                 status: error.response?.status,
             });
+
+            // Handle authentication errors
+            if (error.response?.status === 401) {
+                ApiService.handleAuthError();
+                throw new Error("Authentication expired. Please log in again.");
+            }
+
             throw new Error(error.response?.data?.error || error.message);
         }
     }
@@ -115,6 +131,9 @@ class ApiService {
                 }
                 return null;
             } catch (error) {
+                if (error.response?.status === 401) {
+                    ApiService.handleAuthError();
+                }
                 console.error("Error fetching customer photo:", error);
                 return null;
             }
