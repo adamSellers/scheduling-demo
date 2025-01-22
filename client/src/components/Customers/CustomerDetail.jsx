@@ -31,6 +31,8 @@ import {
 } from '@mui/icons-material';
 import MainLayout from '../../layouts/MainLayout';
 import ApiService from '../../services/api.service';
+import AppointmentBookingModal from './AppointmentBooking/AppointmentBookingModal';
+import { useSalesforceData } from '../../hooks/useSalesforceData';
 
 const CustomerDetail = () => {
   const { id } = useParams();
@@ -42,6 +44,16 @@ const CustomerDetail = () => {
   const [customerData, setCustomerData] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+
+  // Fetch Salesforce data for appointments
+  const { 
+    workGroupTypes, 
+    territories,
+    resources,
+    loading: salesforceDataLoading,
+    error: salesforceDataError 
+  } = useSalesforceData();
 
   useEffect(() => {
     const fetchCustomerData = async () => {
@@ -85,6 +97,14 @@ const CustomerDetail = () => {
 
     fetchCustomerData();
   }, [id]);
+
+  const handleBookAppointment = () => {
+    setIsAppointmentModalOpen(true);
+  };
+
+  const handleCloseAppointmentModal = () => {
+    setIsAppointmentModalOpen(false);
+  };
 
   // Loading state
   if (loading) {
@@ -152,7 +172,7 @@ const CustomerDetail = () => {
                 <Button
                   variant="outlined"
                   startIcon={<EventIcon />}
-                  onClick={() => navigate('/customers')} // This should open the appointment modal
+                  onClick={handleBookAppointment}
                   sx={{ width: '100%' }}
                 >
                   Book Appointment
@@ -249,6 +269,17 @@ const CustomerDetail = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Appointment Booking Modal */}
+        <AppointmentBookingModal
+          open={isAppointmentModalOpen}
+          onClose={handleCloseAppointmentModal}
+          customer={customerData}
+          resources={resources}
+          workGroupTypes={workGroupTypes}
+          territories={territories}
+          loading={salesforceDataLoading}
+        />
       </Container>
     </MainLayout>
   );
