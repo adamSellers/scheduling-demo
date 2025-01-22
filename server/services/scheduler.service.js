@@ -249,68 +249,6 @@ SchedulerService.prototype.getCustomerAppointments = function (
             "ServiceAppointment.AccountId, " +
             "ServiceAppointment.AppointmentNumber, " +
             "ServiceAppointment.SchedStartTime, " +
-            "ServiceAppointment.Status, " +
-            "ServiceAppointment.ServiceTerritoryId, " +
-            "ServiceAppointment.WorkType.Name, " +
-            "ServiceResource.Name " +
-            "FROM AssignedResource " +
-            "WHERE ServiceAppointment.AccountId = '" +
-            accountId +
-            "' " +
-            "ORDER BY ServiceAppointment.SchedStartTime ASC"
-    );
-
-    return axios({
-        method: "GET",
-        url: instanceUrl + "/services/data/v59.0/query/?q=" + query,
-        headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-        },
-    })
-        .then(function (response) {
-            return response.data.records.map(function (record) {
-                return {
-                    id: record.Id,
-                    appointmentNumber:
-                        record.ServiceAppointment.AppointmentNumber,
-                    scheduledStartTime:
-                        record.ServiceAppointment.SchedStartTime,
-                    status: record.ServiceAppointment.Status,
-                    serviceTerritoryId:
-                        record.ServiceAppointment.ServiceTerritoryId,
-                    workTypeName: record.ServiceAppointment.WorkType.Name,
-                    serviceResourceName: record.ServiceResource.Name,
-                };
-            });
-        })
-        .catch(function (error) {
-            console.error("Error in getCustomerAppointments:", error);
-            throw error;
-        });
-};
-SchedulerService.prototype.getCustomerAppointments = function (
-    accessToken,
-    instanceUrl,
-    accountId
-) {
-    if (!instanceUrl) {
-        return Promise.reject(
-            new Error("Instance URL is required for getCustomerAppointments")
-        );
-    }
-
-    if (!accountId) {
-        return Promise.reject(
-            new Error("AccountId is required for getCustomerAppointments")
-        );
-    }
-
-    var query = encodeURIComponent(
-        "SELECT Id, " +
-            "ServiceAppointment.AccountId, " +
-            "ServiceAppointment.AppointmentNumber, " +
-            "ServiceAppointment.SchedStartTime, " +
             "ServiceAppointment.SchedEndTime, " +
             "ServiceAppointment.Status, " +
             "ServiceAppointment.ServiceTerritoryId, " +
