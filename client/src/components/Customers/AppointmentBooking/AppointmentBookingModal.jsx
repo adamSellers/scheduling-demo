@@ -160,15 +160,17 @@ const AppointmentBookingModal = ({
 
       const appointmentData = {
         serviceAppointment: {
-          parentRecordId: customer.id,
-          workTypeId: selectedWorkType.id,
-          serviceTerritoryId: selectedTerritory.id,
-          schedStartTime: selectedTimeSlot.startTime,  // Already in correct format from getCandidates
-          schedEndTime: selectedTimeSlot.endTime,      // Already in correct format from getCandidates
-          appointmentType: "In Person",
-          description: `Luxury client appointment with ${customer.name}`,
-          street: selectedTerritory.address?.split(',')[0]?.trim() || '',
-          city: selectedTerritory.address?.split(',')[1]?.trim() || ''
+            parentRecordId: customer.id,
+            workTypeId: selectedWorkType.id,
+            serviceTerritoryId: selectedTerritory.id,
+            schedStartTime: selectedTimeSlot.startTime,
+            schedEndTime: selectedTimeSlot.endTime,
+            appointmentType: "In Person",
+            status: "Scheduled",
+            description: `Luxury client appointment with ${customer.name}`,
+            street: selectedTerritory.address?.split(',')[0]?.trim() || '',
+            city: selectedTerritory.address?.split(',')[1]?.trim() || '',
+            subject: `${resources.find(r => r.id === selectedResource)?.name || 'Associate'} to meet ${customer.name.split(' ')[0]} at ${new Date(selectedTimeSlot.startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
         },
         assignedResources: [
           {
