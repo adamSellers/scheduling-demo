@@ -29,7 +29,8 @@ import {
   Email as EmailIcon,
   Event as EventIcon,
   Edit as EditIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import MainLayout from '../../layouts/MainLayout';
 import ApiService from '../../services/api.service';
@@ -54,7 +55,8 @@ const CustomerDetail = () => {
     resources,
     customerAppointments,
     loading: salesforceDataLoading,
-    error: salesforceDataError 
+    error: salesforceDataError,
+    refreshData: refreshSalesforceData 
   } = useSalesforceData({
     customerId: id,
     autoFetch: true
@@ -101,6 +103,11 @@ const CustomerDetail = () => {
 
   const handleCloseAppointmentModal = () => {
     setIsAppointmentModalOpen(false);
+  };
+
+  const handleAppointmentSuccess = () => {
+    refreshSalesforceData(); // Automatically refresh after successful appointment creation
+    handleCloseAppointmentModal();
   };
 
   const renderAppointmentStatus = (status) => {
@@ -267,6 +274,14 @@ const CustomerDetail = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CalendarIcon color="primary" />
                 <Typography variant="h6">Appointments</Typography>
+                <IconButton 
+                  size="small" 
+                  onClick={refreshSalesforceData}
+                  disabled={salesforceDataLoading}
+                  sx={{ ml: 1 }}
+                >
+                  <RefreshIcon />
+                </IconButton>
               </Box>
               <Button
                 variant="outlined"
@@ -374,6 +389,7 @@ const CustomerDetail = () => {
         <AppointmentBookingModal
           open={isAppointmentModalOpen}
           onClose={handleCloseAppointmentModal}
+          onSuccess={handleAppointmentSuccess}
           customer={customerData}
           resources={resources}
           workGroupTypes={workGroupTypes}
