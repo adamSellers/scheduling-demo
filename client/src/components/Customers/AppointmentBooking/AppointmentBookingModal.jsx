@@ -166,7 +166,7 @@ const AppointmentBookingModal = ({
             schedStartTime: selectedTimeSlot.startTime,
             schedEndTime: selectedTimeSlot.endTime,
             appointmentType: "In Person",
-            Status: "Scheduled",
+            schedStatus: "Scheduled",
             description: `Luxury client appointment with ${customer.name}`,
             street: selectedTerritory.address?.split(',')[0]?.trim() || '',
             city: selectedTerritory.address?.split(',')[1]?.trim() || '',
