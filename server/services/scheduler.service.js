@@ -140,20 +140,15 @@ SchedulerService.prototype.getServiceAppointments = function (
         );
     }
 
-    // Construct the SOQL query
     var query = encodeURIComponent(
         "SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, " +
             "ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, " +
             "PostalCode, Description, WorkType.Name, WorkTypeId, " +
-            "AccountId, Account.Name, " +
-            "(SELECT ServiceResourceId, ServiceResource.Name FROM AssignedResources " +
-            "WHERE ServiceResource.IsActive = true) " +
+            "AccountId, Account.Name " +
             "FROM ServiceAppointment " +
             "WHERE Status NOT IN ('Completed','Canceled') " +
             "ORDER BY SchedStartTime ASC"
     );
-
-    console.log("Executing SOQL Query:", decodeURIComponent(query));
 
     return axios({
         method: "GET",
@@ -164,17 +159,7 @@ SchedulerService.prototype.getServiceAppointments = function (
         },
     })
         .then(function (response) {
-            console.log("Raw Salesforce Response:", {
-                totalSize: response.data.totalSize,
-                done: response.data.done,
-                sampleRecord: response.data.records[0],
-            });
-
             return response.data.records.map(function (appointment) {
-                // Get the primary assigned resource if available
-                const assignedResource =
-                    appointment.AssignedResources?.records?.[0];
-
                 return {
                     id: appointment.Id,
                     appointmentNumber: appointment.AppointmentNumber,
@@ -195,38 +180,17 @@ SchedulerService.prototype.getServiceAppointments = function (
                         ? appointment.WorkType.Name
                         : null,
                     workTypeId: appointment.WorkTypeId,
-
-                    // Customer relationship fields
                     accountId: appointment.AccountId,
                     accountName: appointment.Account?.Name,
-
-                    // Service Resource fields
-                    serviceResourceId:
-                        assignedResource?.ServiceResourceId || null,
-                    serviceResourceName:
-                        assignedResource?.ServiceResource?.Name || null,
-
-                    // Raw data for debugging
-                    _raw: {
-                        hasAccount: !!appointment.Account,
-                        hasAssignedResources:
-                            appointment.AssignedResources?.records?.length > 0,
-                    },
                 };
             });
         })
         .catch(function (error) {
-            console.error("Error in getServiceAppointments:", {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-                query: decodeURIComponent(query),
-            });
+            console.error("Error in getServiceAppointments:", error);
             throw error;
         });
 };
 
-//service to get service appointments that are assigned to customers
 SchedulerService.prototype.getCustomerAppointments = function (
     accessToken,
     instanceUrl,
@@ -249,21 +213,15 @@ SchedulerService.prototype.getCustomerAppointments = function (
             "ServiceAppointment.AccountId, " +
             "ServiceAppointment.AppointmentNumber, " +
             "ServiceAppointment.SchedStartTime, " +
-            "ServiceAppointment.SchedEndTime, " +
             "ServiceAppointment.Status, " +
             "ServiceAppointment.ServiceTerritoryId, " +
+            "ServiceAppointment.WorkType.Name, " +
             "ServiceResource.Name " +
             "FROM AssignedResource " +
             "WHERE ServiceAppointment.AccountId = '" +
             accountId +
             "' " +
-            "AND ServiceAppointment.Status NOT IN ('Completed','Canceled') " +
             "ORDER BY ServiceAppointment.SchedStartTime ASC"
-    );
-
-    console.log(
-        "Executing customer appointments query:",
-        decodeURIComponent(query)
     );
 
     return axios({
@@ -275,34 +233,23 @@ SchedulerService.prototype.getCustomerAppointments = function (
         },
     })
         .then(function (response) {
-            console.log("Customer appointments response:", {
-                totalSize: response.data.totalSize,
-                done: response.data.done,
-            });
-
-            return response.data.records.map(function (assignedResource) {
+            return response.data.records.map(function (record) {
                 return {
-                    id: assignedResource.ServiceAppointment.Id,
+                    id: record.Id,
                     appointmentNumber:
-                        assignedResource.ServiceAppointment.AppointmentNumber,
+                        record.ServiceAppointment.AppointmentNumber,
                     scheduledStartTime:
-                        assignedResource.ServiceAppointment.SchedStartTime,
-                    scheduledEndTime:
-                        assignedResource.ServiceAppointment.SchedEndTime,
-                    status: assignedResource.ServiceAppointment.Status,
+                        record.ServiceAppointment.SchedStartTime,
+                    status: record.ServiceAppointment.Status,
                     serviceTerritoryId:
-                        assignedResource.ServiceAppointment.ServiceTerritoryId,
-                    serviceResourceName: assignedResource.ServiceResource.Name,
+                        record.ServiceAppointment.ServiceTerritoryId,
+                    workTypeName: record.ServiceAppointment.WorkType.Name,
+                    serviceResourceName: record.ServiceResource.Name,
                 };
             });
         })
         .catch(function (error) {
-            console.error("Error in getCustomerAppointments:", {
-                message: error.message,
-                response: error.response?.data,
-                status: error.response?.status,
-                query: decodeURIComponent(query),
-            });
+            console.error("Error in getCustomerAppointments:", error);
             throw error;
         });
 };
