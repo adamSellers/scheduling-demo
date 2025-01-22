@@ -140,15 +140,21 @@ SchedulerService.prototype.getServiceAppointments = function (
         );
     }
 
+    // Construct the SOQL query
     var query = encodeURIComponent(
         "SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, " +
             "ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, " +
-            "PostalCode, Description, WorkType.Name, WorkTypeId, AccountId, " +
-            "ParentRecordId, ParentRecordType " +
+            "PostalCode, Description, WorkType.Name, WorkTypeId, " +
+            "AccountId, ParentRecordId, ParentRecordType, " +
+            "Account.Name, " +
+            "ServiceResource.Name, ServiceResource.Id, " +
+            "(SELECT ServiceResourceId, ServiceResource.Name FROM ServiceAppointmentResources) " +
             "FROM ServiceAppointment " +
             "WHERE Status NOT IN ('Completed','Canceled') " +
             "ORDER BY SchedStartTime ASC"
     );
+
+    console.log("Executing SOQL Query:", decodeURIComponent(query));
 
     return axios({
         method: "GET",
@@ -159,7 +165,17 @@ SchedulerService.prototype.getServiceAppointments = function (
         },
     })
         .then(function (response) {
+            console.log("Raw Salesforce Response:", {
+                totalSize: response.data.totalSize,
+                done: response.data.done,
+                sampleRecord: response.data.records[0],
+            });
+
             return response.data.records.map(function (appointment) {
+                // Get the primary assigned resource if available
+                const assignedResource =
+                    appointment.ServiceAppointmentResources?.records?.[0];
+
                 return {
                     id: appointment.Id,
                     appointmentNumber: appointment.AppointmentNumber,
@@ -180,11 +196,37 @@ SchedulerService.prototype.getServiceAppointments = function (
                         ? appointment.WorkType.Name
                         : null,
                     workTypeId: appointment.WorkTypeId,
+
+                    // Customer relationship fields
+                    accountId: appointment.AccountId,
+                    parentRecordId: appointment.ParentRecordId,
+                    parentRecordType: appointment.ParentRecordType,
+                    accountName: appointment.Account?.Name,
+
+                    // Service Resource fields
+                    serviceResourceId:
+                        assignedResource?.ServiceResourceId || null,
+                    serviceResourceName:
+                        assignedResource?.ServiceResource?.Name || null,
+
+                    // Raw data for debugging
+                    _raw: {
+                        hasServiceResource: !!appointment.ServiceResource,
+                        hasAccount: !!appointment.Account,
+                        hasAssignedResources:
+                            appointment.ServiceAppointmentResources?.records
+                                ?.length > 0,
+                    },
                 };
             });
         })
         .catch(function (error) {
-            console.error("Error in getServiceAppointments:", error);
+            console.error("Error in getServiceAppointments:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+                query: decodeURIComponent(query),
+            });
             throw error;
         });
 };
