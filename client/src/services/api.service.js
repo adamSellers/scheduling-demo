@@ -46,6 +46,12 @@ class ApiService {
             return ApiService.makeRequest("/api/scheduler/appointments");
         },
 
+        getCustomerAppointments: async (accountId) => {
+            return ApiService.makeRequest(
+                `/api/scheduler/appointments/customer/${accountId}`
+            );
+        },
+
         getWorkGroupTypes: async () => {
             return ApiService.makeRequest("/api/scheduler/work-type-groups");
         },
@@ -86,6 +92,7 @@ class ApiService {
                 )}`
             );
         },
+
         getCustomerPhoto: async (personAccountId) => {
             try {
                 const response = await axios({
