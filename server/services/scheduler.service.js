@@ -368,68 +368,6 @@ SchedulerService.prototype.getCustomerAppointments = function (
             throw error;
         });
 };
-const axios = require("axios");
-
-function SchedulerService() {}
-
-SchedulerService.prototype.makeApiRequest = function (
-    instanceUrl,
-    accessToken,
-    endpoint,
-    method,
-    params,
-    isSchedulingApi
-) {
-    method = method || "GET";
-    params = params || {};
-    isSchedulingApi = isSchedulingApi !== false;
-
-    if (!instanceUrl) {
-        throw new Error("Instance URL is required for API request");
-    }
-
-    var apiPath = isSchedulingApi ? "connect/scheduling" : "scheduling";
-    var url = instanceUrl + "/services/data/v59.0/" + apiPath + endpoint;
-
-    var config = {
-        method: method,
-        url: url,
-        headers: {
-            Authorization: "Bearer " + accessToken,
-            "Content-Type": "application/json",
-        },
-    };
-
-    if (method === "GET") {
-        config.params = params;
-    } else {
-        config.data = params;
-    }
-
-    console.log("Making scheduler API request:", {
-        url: config.url,
-        method: config.method,
-        params: config.params,
-        data: config.data,
-    });
-
-    return axios(config)
-        .then(function (response) {
-            console.log("Scheduler API response:", {
-                status: response.status,
-                data: response.data,
-            });
-            return response.data;
-        })
-        .catch(function (error) {
-            console.error("Error in makeApiRequest:", {
-                endpoint: endpoint,
-                error: error.message,
-                response: error.response && error.response.data,
-            });
-            throw error;
-        });
-};
 
 SchedulerService.prototype.getWorkGroupTypes = async function (
     accessToken,
