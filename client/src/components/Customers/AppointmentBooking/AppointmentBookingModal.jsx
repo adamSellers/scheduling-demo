@@ -168,10 +168,14 @@ const AppointmentBookingModal = ({
           appointmentType: "In Person",
           street: selectedTerritory.address?.split(',')[0]?.trim() || '',
           city: selectedTerritory.address?.split(',')[1]?.trim() || '',
-          schedStatus: "Scheduled",
           subject: `${resources.find(r => r.id === selectedResource)?.name || 'Associate'} to meet ${customer.name.split(' ')[0]} at ${new Date(selectedTimeSlot.startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
           description: `Luxury client appointment with ${customer.name}`,
-          extendedFields: []
+          extendedFields: [
+            {
+              "name": "Status",
+              "value": "Scheduled"
+            }
+          ]
         },
         assignedResources: [
           {
