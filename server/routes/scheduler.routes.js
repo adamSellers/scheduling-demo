@@ -10,6 +10,10 @@ router.use(AuthMiddleware.isAuthenticated);
 router.get("/territories", schedulerController.getServiceTerritories);
 router.get("/resources", schedulerController.getServiceResources);
 router.get("/appointments", schedulerController.getServiceAppointments);
+router.get(
+    "/appointments/customer/:accountId",
+    schedulerController.getCustomerAppointments
+);
 router.get("/work-type-groups", schedulerController.getWorkGroupTypes);
 
 // Appointment scheduling routes

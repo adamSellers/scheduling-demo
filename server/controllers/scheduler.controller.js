@@ -155,6 +155,51 @@ const schedulerController = {
         }
     },
 
+    getCustomerAppointments: async (req, res) => {
+        if (!req.user?.accessToken) {
+            return res.status(401).json({ error: "No access token available" });
+        }
+
+        if (!req.user?.instanceUrl) {
+            return res
+                .status(401)
+                .json({ error: "No Salesforce instance URL available" });
+        }
+
+        const { accountId } = req.params;
+        if (!accountId) {
+            return res.status(400).json({ error: "Account ID is required" });
+        }
+
+        try {
+            console.log(
+                "Fetching customer appointments for account:",
+                accountId
+            );
+            const appointments = await schedulerService.getCustomerAppointments(
+                req.user.accessToken,
+                req.user.instanceUrl,
+                accountId
+            );
+            res.json(appointments);
+        } catch (error) {
+            console.error("Customer appointments fetch error:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status,
+            });
+            if (error.response?.status === 401) {
+                return res
+                    .status(401)
+                    .json({ error: "Authentication error with Salesforce" });
+            }
+            res.status(500).json({
+                error: "Error fetching customer appointments",
+                details: error.message,
+            });
+        }
+    },
+
     getTimeSlots: async (req, res) => {
         if (!req.user?.accessToken) {
             return res.status(401).json({ error: "No access token available" });
