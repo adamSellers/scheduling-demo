@@ -143,7 +143,8 @@ SchedulerService.prototype.getServiceAppointments = function (
     var query = encodeURIComponent(
         "SELECT Id, AppointmentNumber, Status, SchedStartTime, SchedEndTime, " +
             "ServiceTerritoryId, ServiceTerritory.Name, Street, City, State, " +
-            "PostalCode, Description, WorkType.Name, WorkTypeId " +
+            "PostalCode, Description, WorkType.Name, WorkTypeId, AccountId, " +
+            "ParentRecordId, ParentRecordType " +
             "FROM ServiceAppointment " +
             "WHERE Status NOT IN ('Completed','Canceled') " +
             "ORDER BY SchedStartTime ASC"
