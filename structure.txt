@@ -1,3 +1,59 @@
+client
+├── .env
+├── .env.development
+├── .gitignore
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   └── vite.svg
+├── src
+│   ├── App.css
+│   ├── App.jsx
+│   ├── assets
+│   │   └── react.svg
+│   ├── components
+│   │   ├── AppointmentFlow
+│   │   │   └── AppointmentFlow.jsx
+│   │   ├── Customers
+│   │   │   ├── AppointmentBooking
+│   │   │   │   ├── AppointmentBookingModal.jsx
+│   │   │   │   └── steps
+│   │   │   │       ├── ResourceSelection.jsx
+│   │   │   │       ├── TerritorySelection.jsx
+│   │   │   │       ├── TimeSlotSelection.jsx
+│   │   │   │       └── WorkTypeSelection.jsx
+│   │   │   ├── CustomerDetail.jsx
+│   │   │   ├── CustomerTable.jsx
+│   │   │   └── Customers.jsx
+│   │   ├── Dashboard
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── DashboardContent.jsx
+│   │   │   ├── DataTable.jsx
+│   │   │   └── StatCard.jsx
+│   │   ├── Icons
+│   │   │   └── SalesforceIcon.jsx
+│   │   ├── Login
+│   │   │   └── Login.jsx
+│   │   ├── Navigation
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   └── Sidebar.jsx
+│   │   └── Profile
+│   │       └── Profile.jsx
+│   ├── hooks
+│   │   └── useSalesforceData.js
+│   ├── index.css
+│   ├── layouts
+│   │   └── MainLayout.jsx
+│   ├── main.jsx
+│   ├── services
+│   │   └── api.service.js
+│   └── theme
+│       └── theme.js
+└── vite.config.js
 server
 ├── .env
 ├── .gitignore
@@ -38,58 +94,3 @@ server
     ├── error.pug
     ├── index.pug
     └── layout.pug
-client
-├── .env
-├── .env.development
-├── .gitignore
-├── README.md
-├── eslint.config.js
-├── index.html
-├── package-lock.json
-├── package.json
-├── public
-│   └── vite.svg
-├── src
-│   ├── App.css
-│   ├── App.jsx
-│   ├── assets
-│   │   └── react.svg
-│   ├── components
-│   │   ├── AppointmentFlow
-│   │   │   └── AppointmentFlow.jsx
-│   │   ├── Customers
-│   │   │   ├── AppointmentBooking
-│   │   │   │   ├── AppointmentBookingModal.jsx
-│   │   │   │   └── steps
-│   │   │   │       ├── ResourceSelection.jsx
-│   │   │   │       ├── TerritorySelection.jsx
-│   │   │   │       ├── TimeSlotSelection.jsx
-│   │   │   │       └── WorkTypeSelection.jsx
-│   │   │   ├── CustomerTable.jsx
-│   │   │   └── Customers.jsx
-│   │   ├── Dashboard
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── DashboardContent.jsx
-│   │   │   ├── DataTable.jsx
-│   │   │   └── StatCard.jsx
-│   │   ├── Icons
-│   │   │   └── SalesforceIcon.jsx
-│   │   ├── Login
-│   │   │   └── Login.jsx
-│   │   ├── Navigation
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── Sidebar.jsx
-│   │   └── Profile
-│   │       └── Profile.jsx
-│   ├── hooks
-│   │   └── useSalesforceData.js
-│   ├── index.css
-│   ├── layouts
-│   │   └── MainLayout.jsx
-│   ├── main.jsx
-│   ├── services
-│   │   └── api.service.js
-│   └── theme
-│       └── theme.js
-└── vite.config.js
