@@ -212,7 +212,6 @@ const CustomerDetail = () => {
                   sx={{
                     width: 120,
                     height: 120,
-                    mb: 2,
                     bgcolor: 'primary.main',
                     fontSize: '3rem',
                     border: photoUrl ? '2px solid' : 'none',
@@ -221,14 +220,6 @@ const CustomerDetail = () => {
                 >
                   {customerData.name?.charAt(0)}
                 </Avatar>
-                <Button
-                  variant="outlined"
-                  startIcon={<EventIcon />}
-                  onClick={handleBookAppointment}
-                  sx={{ width: '100%' }}
-                >
-                  Book Appointment
-                </Button>
               </Box>
             </Grid>
             
