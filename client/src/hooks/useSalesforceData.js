@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import ApiService from "../services/api.service";
+import Logger from "../utils/logger";
 
 /**
  * Custom hook for fetching and managing Salesforce data
@@ -26,35 +27,82 @@ export const useSalesforceData = (options = {}) => {
      * Main data fetching function
      */
     const fetchData = async () => {
+        const fetchStartTime = performance.now();
+        Logger.debug("useSalesforceData: Starting data fetch", {
+            customerId,
+            autoFetch,
+            timestamp: new Date().toISOString(),
+        });
+
         setLoading(true);
         setError(null);
 
         try {
-            console.log("Starting to fetch Salesforce data...", {
-                hasCustomerId: !!customerId,
-            });
-
             // Define base fetch promises
             const fetchPromises = [
-                ApiService.scheduler.getWorkGroupTypes(),
-                ApiService.scheduler.getTerritories(),
-                ApiService.scheduler.getResources(),
-                ApiService.scheduler.getAppointments(),
+                {
+                    name: "workGroupTypes",
+                    promise: ApiService.scheduler.getWorkGroupTypes(),
+                },
+                {
+                    name: "territories",
+                    promise: ApiService.scheduler.getTerritories(),
+                },
+                {
+                    name: "resources",
+                    promise: ApiService.scheduler.getResources(),
+                },
+                {
+                    name: "appointments",
+                    promise: ApiService.scheduler.getAppointments(),
+                },
             ];
 
             // Add customer appointments fetch if customerId is provided
             if (customerId) {
-                console.log(
-                    "Including customer appointments fetch for ID:",
-                    customerId
+                Logger.debug(
+                    "useSalesforceData: Including customer appointments fetch",
+                    { customerId }
                 );
-                fetchPromises.push(
-                    ApiService.scheduler.getCustomerAppointments(customerId)
-                );
+                fetchPromises.push({
+                    name: "customerAppointments",
+                    promise:
+                        ApiService.scheduler.getCustomerAppointments(
+                            customerId
+                        ),
+                });
             }
 
-            // Execute all fetches in parallel
-            const results = await Promise.all(fetchPromises);
+            // Execute all fetches in parallel and time them
+            const results = await Promise.all(
+                fetchPromises.map(async ({ name, promise }) => {
+                    const startTime = performance.now();
+                    try {
+                        const result = await promise;
+                        const duration = performance.now() - startTime;
+                        Logger.debug(`useSalesforceData: Fetched ${name}`, {
+                            duration: `${duration.toFixed(2)}ms`,
+                            resultCount: Array.isArray(result)
+                                ? result.length
+                                : "N/A",
+                        });
+                        return result;
+                    } catch (error) {
+                        Logger.error(
+                            `useSalesforceData: Error fetching ${name}`,
+                            {
+                                error,
+                                duration: `${(
+                                    performance.now() - startTime
+                                ).toFixed(2)}ms`,
+                            }
+                        );
+                        throw error;
+                    }
+                })
+            );
+
+            // Destructure results
             const [
                 workGroupTypesData,
                 territoriesData,
@@ -63,46 +111,26 @@ export const useSalesforceData = (options = {}) => {
                 customerAppointmentsData,
             ] = results;
 
-            // Log the results for debugging
-            console.log("Work group types fetch result:", workGroupTypesData);
-            console.log("Territories fetch result:", territoriesData);
-            console.log("Resources fetch result:", resourcesData);
-            console.log("Appointments fetch result:", appointmentsData);
-            if (customerAppointmentsData) {
-                console.log(
-                    "Customer appointments fetch result:",
-                    customerAppointmentsData
-                );
-            }
+            // Validate data shapes
+            const validations = [
+                { name: "workGroupTypes", data: workGroupTypesData },
+                { name: "territories", data: territoriesData },
+                { name: "resources", data: resourcesData },
+                { name: "appointments", data: appointmentsData },
+            ];
 
-            // Validate the data
-            if (!Array.isArray(workGroupTypesData)) {
-                console.warn(
-                    "Work group types data is not an array:",
-                    workGroupTypesData
-                );
-            }
-            if (!Array.isArray(territoriesData)) {
-                console.warn(
-                    "Territories data is not an array:",
-                    territoriesData
-                );
-            }
-            if (!Array.isArray(resourcesData)) {
-                console.warn("Resources data is not an array:", resourcesData);
-            }
-            if (!Array.isArray(appointmentsData)) {
-                console.warn(
-                    "Appointments data is not an array:",
-                    appointmentsData
-                );
-            }
-            if (customerId && !Array.isArray(customerAppointmentsData)) {
-                console.warn(
-                    "Customer appointments data is not an array:",
-                    customerAppointmentsData
-                );
-            }
+            validations.forEach(({ name, data }) => {
+                if (!Array.isArray(data)) {
+                    Logger.warn(
+                        `useSalesforceData: Invalid ${name} data shape`,
+                        {
+                            expectedType: "Array",
+                            receivedType: typeof data,
+                            value: data,
+                        }
+                    );
+                }
+            });
 
             // Update state with the fetched data
             setData({
@@ -113,14 +141,24 @@ export const useSalesforceData = (options = {}) => {
                 customerAppointments: customerAppointmentsData || [],
             });
 
-            console.log("Successfully updated Salesforce data state", {
-                hasCustomerAppointments: !!customerAppointmentsData?.length,
+            const totalDuration = performance.now() - fetchStartTime;
+            Logger.debug("useSalesforceData: Successfully updated state", {
+                duration: `${totalDuration.toFixed(2)}ms`,
+                dataStats: {
+                    territories: territoriesData?.length || 0,
+                    workGroupTypes: workGroupTypesData?.length || 0,
+                    resources: resourcesData?.length || 0,
+                    appointments: appointmentsData?.length || 0,
+                    customerAppointments: customerAppointmentsData?.length || 0,
+                },
             });
         } catch (error) {
-            console.error("Error fetching Salesforce data:", {
-                message: error.message,
+            const errorDuration = performance.now() - fetchStartTime;
+            Logger.error("useSalesforceData: Failed to fetch data", {
+                error: error.message,
                 stack: error.stack,
-                response: error.response?.data,
+                duration: `${errorDuration.toFixed(2)}ms`,
+                customerId,
             });
             setError(error.message || "Failed to fetch Salesforce data");
         } finally {
@@ -131,6 +169,9 @@ export const useSalesforceData = (options = {}) => {
     // Initial data fetch on component mount if autoFetch is true
     useEffect(() => {
         if (autoFetch) {
+            Logger.debug("useSalesforceData: Auto-fetching data", {
+                customerId,
+            });
             fetchData();
         }
     }, [autoFetch, customerId]); // Re-fetch when customerId changes
@@ -150,7 +191,10 @@ export const useSalesforceData = (options = {}) => {
 
         // Control functions
         refreshData: fetchData,
-        clearError: () => setError(null),
+        clearError: () => {
+            Logger.debug("useSalesforceData: Clearing error state");
+            setError(null);
+        },
     };
 };
 
