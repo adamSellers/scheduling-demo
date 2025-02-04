@@ -1,6 +1,6 @@
 # Salesforce Scheduler Front End - Demo App
 
-### This is a DEMO APP Only, do not expect that it works or is supported - thanks
+### This is a DEMO APP Only, this is NOT supported nor warrented as even working - thanks
 
 This is a React app demo to showcase the use of a 3rd party front end to interact with the Salesforce Scheduling API's. This app is designed to run on the Salesforce on Alibaba Cloud infrastructure, but should also work on the standard Salesforce instances - update your login string accordingly.
 
